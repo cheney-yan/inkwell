@@ -300,12 +300,6 @@ const Index = () => {
                              </Button>
                         </div>
                     )}
-                     {/* Allow switching to custom if currently selected */}
-                     {selectedGenre !== 'custom' && (
-                        <Button variant="ghost" onClick={() => setSelectedGenre('custom')} size="sm">
-                            Custom
-                        </Button>
-                     )}
                   </div>
                 </div>
               </div>

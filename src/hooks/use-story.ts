@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { StoryConfig, StoryState, SystemPrompts, DEFAULT_PROMPTS, Chapter, StoryPlan, PROMPTS_MAP, OutlineItem } from "@/lib/types";
+import { StoryConfig, StoryState, SystemPrompts, DEFAULT_PROMPTS, Chapter, StoryPlan, PROMPTS_MAP } from "@/lib/types";
 import { generateCompletion } from "@/lib/openai";
 import { toast } from "sonner";
-import { parseLegacyOutline } from "@/lib/story-utils";
 
 const STORAGE_KEY_STORY = "inkwell-story";
 const STORAGE_KEY_CONFIG = "inkwell-config";
@@ -22,7 +21,7 @@ export const useStory = () => {
     return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
   });
 
-  // System Prompts State
+  // System Prompts State (Debug Mode)
   const [prompts, setPrompts] = useState<SystemPrompts>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_PROMPTS);
     return saved ? JSON.parse(saved) : DEFAULT_PROMPTS;
@@ -31,7 +30,9 @@ export const useStory = () => {
   // Story Content State
   const [story, setStory] = useState<StoryState>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_STORY);
-    let initial: StoryState = {
+    return saved
+      ? JSON.parse(saved)
+      : {
           hasPlan: false,
           plan: {
             title: "",
@@ -39,22 +40,12 @@ export const useStory = () => {
             language: "English",
             premise: "",
             characters: "",
-            outline: [], 
+            outline: "",
             totalChapters: 12,
           },
           chapters: [],
           currentChapterIndex: -1,
-    };
-
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        // Migration check: if outline is string, convert it? Or just reset for safety in this demo
-        if (typeof parsed.plan?.outline === 'string') {
-            parsed.plan.outline = parseLegacyOutline(parsed.plan.outline);
-        }
-        initial = { ...initial, ...parsed };
-    }
-    return initial;
+        };
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -108,22 +99,10 @@ export const useStory = () => {
 
       const parsed = JSON.parse(jsonString);
 
-      // Ensure outline is array
-      let finalOutline: OutlineItem[] = [];
-      if (Array.isArray(parsed.outline)) {
-          finalOutline = parsed.outline.map((item: any, idx: number) => ({
-              id: crypto.randomUUID(),
-              title: item.title || `Chapter ${idx + 1}`,
-              description: item.description || JSON.stringify(item)
-          }));
-      } else if (typeof parsed.outline === 'string') {
-          finalOutline = parseLegacyOutline(parsed.outline);
-      }
-
       setStory((prev) => ({
         ...prev,
         hasPlan: true,
-        plan: { ...prev.plan, ...inputs, ...parsed, outline: finalOutline, language: targetLanguage },
+        plan: { ...prev.plan, ...inputs, ...parsed, language: targetLanguage },
       }));
       toast.success("Story plan generated successfully!");
     } catch (error: any) {
@@ -144,15 +123,11 @@ export const useStory = () => {
       const chapterNum = story.chapters.length + 1;
       const context = story.chapters.slice(-2).map(c => `Chapter ${c.id} Summary: ${c.summary}`).join("\n");
       
-      // Serialize outline for prompt
-      const outlineStr = story.plan.outline.map(o => `${o.title}: ${o.description}`).join("\n");
-
       const userPrompt = `
         Plan Context:
         Title: ${story.plan.title}
         Characters: ${story.plan.characters}
-        Outline: 
-        ${outlineStr}
+        Outline: ${story.plan.outline}
         
         Previous Context:
         ${context}
@@ -221,7 +196,7 @@ export const useStory = () => {
               language: "English",
               premise: "",
               characters: "",
-              outline: [],
+              outline: "",
               totalChapters: 12,
             },
             chapters: [],
@@ -244,9 +219,8 @@ export const useStory = () => {
     const { title, characters, outline } = story.plan;
     let text = `# ${title}\n\n`;
     text += `## Characters\n${characters}\n\n`;
-    text += `## Outline\n`;
-    outline.forEach(o => text += `- ${o.title}: ${o.description}\n`);
-    text += `\n---\n\n`;
+    text += `## Outline\n${outline}\n\n`;
+    text += `---\n\n`;
 
     story.chapters.forEach((chapter) => {
       text += `## ${chapter.title}\n\n${chapter.content}\n\n`;

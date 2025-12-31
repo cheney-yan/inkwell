@@ -1,32 +1,18 @@
-import { OutlineItem } from "./types";
-
-export const extractChapterPlan = (outline: OutlineItem[] | string, chapterNum: number, lang: string): string => {
-  // Handle Legacy String format
-  if (typeof outline === 'string') {
-     return extractLegacyChapterPlan(outline, chapterNum);
-  }
-
-  // Handle Structured Array format
-  if (Array.isArray(outline)) {
-      // 1-based index to 0-based
-      const index = chapterNum - 1;
-      if (index >= 0 && index < outline.length) {
-          const item = outline[index];
-          return `${item.title}: ${item.description}`;
-      }
-  }
-
-  return "";
-};
-
-// Legacy string parsing logic (kept for backward compatibility during migration)
-const extractLegacyChapterPlan = (outline: string, chapterNum: number): string => {
+export const extractChapterPlan = (outline: string, chapterNum: number, lang: string): string => {
   if (!outline) return "";
+
+  // normalized chapter number (ensure it's an integer)
   const num = Math.floor(chapterNum);
+
+  // Define regex patterns for different languages
   const patterns = [
+    // Standard "Chapter 1:", "Capítulo 1:", etc.
     new RegExp(`(?:Chapter|Capítulo|Chapitre|Kapitel)\\s+${num}[:\\.]\\s*([\\s\\S]*?)(?=(?:Chapter|Capítulo|Chapitre|Kapitel)\\s+\\d+|$)`, 'i'),
+    // "1. ", "2. " format
     new RegExp(`^${num}\\.\\s*([\\s\\S]*?)(?=(?:^|\\n)\\d+\\.|$)`, 'm'),
+    // Chinese/Japanese "第1章" or "第一章" (handling basic 1-10 mapping for chinese numerals if needed, but keeping it simple for now)
     new RegExp(`(?:第)\\s*${num}\\s*(?:章)[:\\uff1a]\\s*([\\s\\S]*?)(?=(?:第)\\s*\\d+\\s*(?:章)|$)`, 'i'),
+    // Fallback for Chinese numerals (1-10)
     new RegExp(`(?:第)\\s*[${getChineseNumeral(num)}]\\s*(?:章)[:\\uff1a]\\s*([\\s\\S]*?)(?=(?:第)\\s*[${getAllChineseNumerals()}]\\s*(?:章)|$)`, 'i')
   ];
 
@@ -36,27 +22,8 @@ const extractLegacyChapterPlan = (outline: string, chapterNum: number): string =
       return match[1].trim();
     }
   }
-  return "";
-};
 
-export const parseLegacyOutline = (outline: string): OutlineItem[] => {
-    if (!outline) return [];
-    
-    // Very basic splitter for legacy text blocks to attempt migration
-    // Splits by "Chapter X" or just newlines if that fails
-    const items: OutlineItem[] = [];
-    const lines = outline.split('\n').filter(l => l.trim().length > 0);
-    
-    // Simple heuristic: treat every non-empty line as a potential chapter if no clear markers
-    lines.forEach((line, idx) => {
-        items.push({
-            id: crypto.randomUUID(),
-            title: `Chapter ${idx + 1}`,
-            description: line.trim()
-        });
-    });
-    
-    return items;
+  return "";
 };
 
 function getChineseNumeral(num: number): string {

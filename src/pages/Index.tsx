@@ -67,7 +67,10 @@ const Index = () => {
               setSelectedGenre("custom");
           }
       }
-  }, [story.hasPlan, story.plan.genre]);
+      if (story.hasPlan && story.plan.totalChapters) {
+          setTotalChapters(story.plan.totalChapters);
+      }
+  }, [story.hasPlan, story.plan.genre, story.plan.totalChapters]);
 
   const handleGeneratePlan = () => {
     const genreLabel = GENRES.find(g => g.value === selectedGenre)?.label || "Custom";
@@ -86,7 +89,7 @@ const Index = () => {
         generatePlan({ 
             premise: story.plan.premise, 
             characters: story.plan.characters, 
-            totalChapters: story.plan.totalChapters,
+            totalChapters: totalChapters, // Use the local state which might be updated
             genre: story.plan.genre,
             // Re-derive the value key from the label if possible, or just pass what we have
             genreValue: GENRES.find(g => g.label === story.plan.genre)?.value || "custom"
@@ -317,22 +320,35 @@ const Index = () => {
               </div>
 
               <div className="space-y-2">
-                 <div className="flex justify-between items-center">
+                 <div className="flex justify-between items-end">
                     <Label>{labels.outlineLabel}</Label>
-                    <Button 
-                        onClick={handleRegeneratePlan} 
-                        disabled={isGenerating} 
-                        variant="ghost"
-                        size="sm"
-                        className="h-8"
-                    >
-                        {isGenerating ? (
-                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                        ) : (
-                        <RefreshCw className="mr-2 h-3 w-3" />
-                        )}
-                        {labels.regeneratePlanBtn}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">{labels.chaptersLabel}</span>
+                            <Input 
+                                type="number" 
+                                className="w-20 h-8"
+                                min={1}
+                                max={50}
+                                value={totalChapters}
+                                onChange={(e) => setTotalChapters(parseInt(e.target.value))}
+                            />
+                        </div>
+                        <Button 
+                            onClick={handleRegeneratePlan} 
+                            disabled={isGenerating} 
+                            variant="ghost"
+                            size="sm"
+                            className="h-8"
+                        >
+                            {isGenerating ? (
+                            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                            ) : (
+                            <RefreshCw className="mr-2 h-3 w-3" />
+                            )}
+                            {labels.regeneratePlanBtn}
+                        </Button>
+                    </div>
                  </div>
                  
                  <ChapterPlanList 

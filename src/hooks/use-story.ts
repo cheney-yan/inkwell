@@ -144,11 +144,19 @@ export const useStory = () => {
   const generateChapter = async (instructions: string) => {
     setIsGenerating(true);
     try {
-      const chapterNum = story.chapters.length + 1;
-      const context = story.chapters.slice(-2).map(c => `Chapter ${c.id} Summary: ${c.summary}`).join("\n");
+      // Determine if we are writing a new chapter or re-writing an empty one
+      let targetIndex = story.chapters.length;
+      let chapterNum = story.chapters.length + 1;
+      
+      // If current chapter is empty, we overwrite it
+      if (story.currentChapterIndex >= 0 && story.chapters[story.currentChapterIndex] && !story.chapters[story.currentChapterIndex].content) {
+          targetIndex = story.currentChapterIndex;
+          chapterNum = targetIndex + 1;
+      }
+
+      const context = story.chapters.slice(Math.max(0, targetIndex - 2), targetIndex).map(c => `Chapter ${c.id} Summary: ${c.summary}`).join("\n");
       const genreValue = story.plan.genreValue || "custom";
       
-      // Determine prompts: Use custom if set, otherwise derive from genre + global defaults
       const effectivePrompts = story.plan.customPrompts || getGenrePrompts(genreValue, prompts);
       
       const outlineStr = Array.isArray(story.plan.outline) 
@@ -184,11 +192,19 @@ export const useStory = () => {
         summary: summary,
       };
 
-      setStory((prev) => ({
-        ...prev,
-        chapters: [...prev.chapters, newChapter],
-        currentChapterIndex: prev.chapters.length, // Point to the new chapter
-      }));
+      setStory((prev) => {
+          const newChapters = [...prev.chapters];
+          if (targetIndex < newChapters.length) {
+              newChapters[targetIndex] = newChapter;
+          } else {
+              newChapters.push(newChapter);
+          }
+          return {
+            ...prev,
+            chapters: newChapters,
+            currentChapterIndex: targetIndex,
+          };
+      });
       toast.success(`Chapter ${chapterNum} written!`);
     } catch (error: any) {
       console.error(error);
@@ -209,6 +225,39 @@ export const useStory = () => {
       }
       return { ...prev, chapters: updatedChapters };
     });
+  };
+
+  const deleteChapter = (index: number) => {
+    setStory((prev) => {
+      const isLast = index === prev.chapters.length - 1;
+      
+      if (isLast) {
+         const newChapters = prev.chapters.slice(0, -1);
+         // If we deleted the current chapter (which was last), move index back
+         let newIndex = prev.currentChapterIndex;
+         if (newIndex >= newChapters.length) {
+             newIndex = Math.max(-1, newChapters.length - 1);
+         }
+         return {
+             ...prev,
+             chapters: newChapters,
+             currentChapterIndex: newIndex
+         };
+      } else {
+          // Empty content
+          const newChapters = [...prev.chapters];
+          newChapters[index] = {
+              ...newChapters[index],
+              content: "",
+              summary: "" 
+          };
+          return {
+              ...prev,
+              chapters: newChapters
+          };
+      }
+    });
+    toast.success(index === story.chapters.length - 1 ? "Last chapter deleted." : "Chapter content cleared.");
   };
 
   const navigateChapter = (direction: "next" | "prev") => {
@@ -308,6 +357,7 @@ export const useStory = () => {
     generatePlan,
     generateChapter,
     editChapter,
+    deleteChapter,
     navigateChapter,
     resetStory,
     clearChapters,

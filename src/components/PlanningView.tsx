@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 
 interface PlanningViewProps {
@@ -17,10 +16,8 @@ interface PlanningViewProps {
 }
 
 export function PlanningView({ plan, onGenerate, onUpdate, isGenerating, hasPlan }: PlanningViewProps) {
-  // Local state for the inputs before generation, or editing the plan after
   const [formData, setFormData] = useState<StoryPlan>(plan);
 
-  // Update local state when the parent plan changes (e.g., after AI generation)
   useEffect(() => {
     setFormData(plan);
   }, [plan]);
@@ -43,23 +40,15 @@ export function PlanningView({ plan, onGenerate, onUpdate, isGenerating, hasPlan
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-             <div className="space-y-2">
-              <Label>Language</Label>
-              <Input 
-                value={formData.language} 
-                onChange={(e) => handleChange("language", e.target.value)}
-                placeholder="English, Spanish, etc."
-              />
-            </div>
-            <div className="space-y-2">
+          {/* Removed Language Input - now handled globally via Settings */}
+          
+          <div className="space-y-2">
               <Label>Approx. Chapters</Label>
               <Input 
                 type="number" 
                 value={formData.totalChapters} 
                 onChange={(e) => handleChange("totalChapters", parseInt(e.target.value))}
               />
-            </div>
           </div>
 
           <div className="space-y-2">
@@ -82,7 +71,6 @@ export function PlanningView({ plan, onGenerate, onUpdate, isGenerating, hasPlan
             />
           </div>
 
-          {/* Fields that are usually populated by AI but editable */}
           {hasPlan && (
             <>
               <div className="space-y-2">

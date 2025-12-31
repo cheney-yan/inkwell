@@ -79,10 +79,13 @@ export const useStory = () => {
   const generatePlan = async (inputs: Partial<StoryPlan>) => {
     setIsGenerating(true);
     try {
+      // Use the global config language for the target language of the story
+      const targetLanguage = config.uiLanguage; 
+      
       const userPrompt = `
         Premise: ${inputs.premise}
         Desired Characters: ${inputs.characters}
-        Target Language: ${inputs.language}
+        Target Language: ${targetLanguage}
         Approximate Chapters: ${inputs.totalChapters}
       `;
 
@@ -103,7 +106,7 @@ export const useStory = () => {
       setStory((prev) => ({
         ...prev,
         hasPlan: true,
-        plan: { ...prev.plan, ...inputs, ...parsed },
+        plan: { ...prev.plan, ...inputs, ...parsed, language: targetLanguage },
       }));
       toast.success("Story plan generated successfully!");
     } catch (error: any) {

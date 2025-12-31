@@ -38,7 +38,7 @@ export interface StoryConfig {
 export const DEFAULT_PROMPTS: SystemPrompts = {
   planning: `You are an expert novelist. Your task is to create a detailed, chapter-by-chapter outline for a novel based on the user's premise.
   
-  IMPORTANT: Output strictly raw JSON only. Do not use Markdown code blocks (no \`\`\`json). Do not add any conversational text before or after the JSON.
+  IMPORTANT: Return ONLY a valid JSON object. Do NOT wrap it in markdown code blocks (e.g. \`\`\`json ... \`\`\`). Do NOT include any intro or outro text. The response must start with '{' and end with '}'.
   
   Output a JSON object with this structure:
   {
@@ -69,7 +69,7 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
   es: {
     planning: `Eres un novelista experto. Tu tarea es crear un esquema detallado capítulo por capítulo.
     
-    IMPORTANTE: Salida estrictamente JSON sin formato (raw JSON). No uses bloques de código Markdown (sin \`\`\`). Sin texto conversacional.
+    IMPORTANTE: Devuelve SOLO un objeto JSON válido. NO lo envuelvas en bloques de código markdown (ej. \`\`\`json ... \`\`\`). NO incluyas texto de introducción o conclusión. La respuesta debe empezar con '{' y terminar con '}'.
     
     Estructura JSON requerida:
     {
@@ -83,7 +83,7 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
   fr: {
     planning: `Vous êtes un romancier expert. Votre tâche est de créer un plan détaillé.
     
-    IMPORTANT : Sortie strictement JSON brut uniquement. Pas de blocs de code Markdown. Pas de texte conversationnel.
+    IMPORTANT : Retournez UNIQUEMENT un objet JSON valide. NE PAS l'entourer de blocs de code markdown (ex. \`\`\`json ... \`\`\`). N'incluez AUCUN texte d'intro ou de conclusion. La réponse doit commencer par '{' et finir par '}'.
     
     Structure JSON requise :
     {
@@ -97,7 +97,7 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
   de: {
     planning: `Du bist ein erfahrener Romanautor. Erstelle eine detaillierte Gliederung.
     
-    WICHTIG: Gib nur reines JSON aus (raw JSON). Keine Markdown-Codeblöcke. Kein Konversationstext.
+    WICHTIG: Gib NUR ein gültiges JSON-Objekt zurück. Packe es NICHT in Markdown-Codeblöcke (z.B. \`\`\`json ... \`\`\`). Füge KEINEN Einleitungs- oder Schluss-Text hinzu. Die Antwort muss mit '{' beginnen und mit '}' enden.
     
     Benötigte JSON-Struktur:
     {
@@ -111,7 +111,7 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
   zh: {
     planning: `你是一位专家小说家。你的任务是创建一个详细的逐章大纲。
     
-    重要：仅输出原始JSON格式。不要使用Markdown代码块（不要 \`\`\`json）。不要包含任何对话文本。
+    重要：仅返回有效的 JSON 对象。不要将其包含在 markdown 代码块中（例如 \`\`\`json ... \`\`\`）。不要包含任何介绍或结尾文本。响应必须以 '{' 开头并以 '}' 结尾。
     
     JSON结构：
     {
@@ -125,7 +125,7 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
   ja: {
     planning: `あなたは熟練した小説家です。詳細な章ごとのアウトラインを作成してください。
     
-    重要：生のJSONのみを出力してください。Markdownコードブロックは使用しないでください。会話テキストは含めないでください。
+    重要：有効なJSONオブジェクトのみを返してください。Markdownコードブロック（例：\`\`\`json ... \`\`\`）で囲まないでください。導入テキストや終了テキストを含めないでください。レスポンスは '{' で始まり '}' で終わる必要があります。
     
     必要なJSON構造：
     {

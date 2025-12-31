@@ -6,7 +6,7 @@ import { toast } from "sonner";
 const STORAGE_KEY_STORY = "inkwell-story";
 const STORAGE_KEY_CONFIG = "inkwell-config";
 // Updated storage key to force refresh of default prompts with new strict JSON instructions
-const STORAGE_KEY_PROMPTS = "inkwell-prompts-v2";
+const STORAGE_KEY_PROMPTS = "inkwell-prompts-v3";
 
 export const useStory = () => {
   // Configuration State

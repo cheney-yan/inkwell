@@ -90,11 +90,14 @@ export function SettingsDialog({
     reader.readAsText(file);
   };
 
-  const handleResetPrompts = () => {
-    if (confirm("Reset prompts to default for current language?")) {
+  const handleResetPrompt = (type: keyof SystemPrompts) => {
+    if (confirm(`Reset ${type} prompt to default for current language?`)) {
         const defaults = PROMPTS_MAP[config.uiLanguage] || DEFAULT_PROMPTS;
-        onUpdatePrompts(defaults);
-        toast.success("Prompts reset to defaults");
+        onUpdatePrompts({
+            ...prompts,
+            [type]: defaults[type]
+        });
+        toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} prompt reset to default`);
     }
   };
 
@@ -219,13 +222,19 @@ export function SettingsDialog({
 
           {/* PROMPTS DEBUG TAB */}
           <TabsContent value="prompts" className="space-y-4 pt-4">
-            <div className="flex justify-end">
-                <Button variant="outline" size="sm" onClick={handleResetPrompts}>
-                    <RotateCcw className="mr-2 h-4 w-4" /> Reset to Defaults
-                </Button>
-            </div>
             <div className="space-y-2">
-              <Label>Planning Prompt</Label>
+              <div className="flex justify-between items-center">
+                  <Label>Planning Prompt</Label>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleResetPrompt("planning")}
+                    title="Reset to Default"
+                    className="h-6 px-2"
+                  >
+                    <RotateCcw className="mr-2 h-3 w-3" /> Reset
+                  </Button>
+              </div>
               <Textarea
                 className="font-mono text-xs h-32"
                 value={prompts.planning}
@@ -236,7 +245,18 @@ export function SettingsDialog({
               <p className="text-xs text-muted-foreground">Used when generating the initial story outline.</p>
             </div>
             <div className="space-y-2">
-              <Label>Writing Prompt</Label>
+              <div className="flex justify-between items-center">
+                  <Label>Writing Prompt</Label>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleResetPrompt("writing")}
+                    title="Reset to Default"
+                    className="h-6 px-2"
+                  >
+                    <RotateCcw className="mr-2 h-3 w-3" /> Reset
+                  </Button>
+              </div>
               <Textarea
                 className="font-mono text-xs h-32"
                 value={prompts.writing}

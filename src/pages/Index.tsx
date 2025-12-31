@@ -204,7 +204,7 @@ const Index = () => {
       <div className="min-h-screen bg-background p-8 flex flex-col items-center justify-center">
         <DisclaimerDialog />
         <div className="absolute top-4 right-4 flex items-center gap-2">
-          <a href="https://github.com/rebelnii/inkwell" target="_blank" rel="noopener noreferrer">
+          <a href="https://github.com/cheney-yan/inkwell" target="_blank" rel="noopener noreferrer">
             <Button variant="ghost" size="icon">
               <Github className="h-5 w-5" />
             </Button>
@@ -323,7 +323,7 @@ const Index = () => {
            <Button variant="outline" size="sm" onClick={resetStory} className="text-destructive hover:text-destructive">
              <Trash2 className="mr-2 h-4 w-4" /> {labels.resetBtn}
            </Button>
-           <a href="https://github.com/rebelnii/inkwell" target="_blank" rel="noopener noreferrer">
+           <a href="https://github.com/cheney-yan/inkwell" target="_blank" rel="noopener noreferrer">
             <Button variant="ghost" size="icon">
               <Github className="h-5 w-5" />
             </Button>

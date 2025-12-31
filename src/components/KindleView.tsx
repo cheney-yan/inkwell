@@ -37,8 +37,7 @@ export function KindleView({ story, onGenerateChapter, onNavigate, onEditChapter
     const isAtEnd = story.chapters.length === 0 || story.currentChapterIndex === story.chapters.length - 1;
     
     if (isAtEnd && story.plan.outline) {
-      // Try to find the specific line in the outline for this chapter
-      const outlineLines = story.plan.outline.split('\n').filter(line => line.trim().length > 0);
+      const outlineLines = story.plan.outline;
       
       // Heuristic: Look for lines starting with the number or "Chapter X"
       const regex = new RegExp(`^(?:Chapter\\s+)?${nextChapterNum}[.:\\-]\\s*(.+)`, 'i');
@@ -54,9 +53,10 @@ export function KindleView({ story, onGenerateChapter, onNavigate, onEditChapter
       
       // Fallback: If we assume the outline is a simple ordered list, grab by index
       // (Adjusting for 0-based index vs 1-based chapter)
-      // This is risky if the outline has a preamble, so we only do it if the line starts with a number
-      if (outlineLines[nextChapterNum - 1] && /^\d/.test(outlineLines[nextChapterNum - 1])) {
-         setInstructions(outlineLines[nextChapterNum - 1].replace(/^\d+[.:\-]\s*/, "").trim());
+      if (outlineLines[nextChapterNum - 1]) {
+         const line = outlineLines[nextChapterNum - 1];
+         // If it starts with a number like "1. Summary", strip it. Otherwise just use it.
+         setInstructions(line.replace(/^\d+[.:\-]\s*/, "").trim());
       }
     }
   }, [story.chapters.length, story.currentChapterIndex, story.plan.outline]);

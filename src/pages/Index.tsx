@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UI_LABELS } from "@/lib/types";
 import { extractChapterPlan } from "@/lib/story-utils";
+import { ChapterPlanList } from "@/components/ChapterPlanList";
 
 const Index = () => {
   const {
@@ -259,12 +260,11 @@ const Index = () => {
                         {labels.regeneratePlanBtn}
                     </Button>
                  </div>
-                <Textarea 
-                   className="font-mono text-sm"
-                   value={story.plan.outline}
-                   onChange={(e) => updatePlan({...story.plan, outline: e.target.value})}
-                   rows={15}
-                />
+                 
+                 <ChapterPlanList 
+                    outline={Array.isArray(story.plan.outline) ? story.plan.outline : []}
+                    onChange={(newOutline) => updatePlan({...story.plan, outline: newOutline})}
+                 />
               </div>
               
               <Button 

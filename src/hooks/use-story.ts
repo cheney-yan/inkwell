@@ -5,7 +5,6 @@ import { toast } from "sonner";
 
 const STORAGE_KEY_STORY = "inkwell-story";
 const STORAGE_KEY_CONFIG = "inkwell-config";
-// Updated storage key to force refresh of default prompts with new strict JSON instructions
 const STORAGE_KEY_PROMPTS = "inkwell-prompts-v3";
 
 export const useStory = () => {
@@ -25,8 +24,6 @@ export const useStory = () => {
   // System Prompts State (Debug Mode)
   const [prompts, setPrompts] = useState<SystemPrompts>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_PROMPTS);
-    // If we have saved prompts, we use them. BUT if the user switches languages, logic below handles it.
-    // Since we changed the KEY, this will default to DEFAULT_PROMPTS on first run after update.
     return saved ? JSON.parse(saved) : DEFAULT_PROMPTS;
   });
 
@@ -67,9 +64,7 @@ export const useStory = () => {
 
   // Actions
   const updateConfig = (newConfig: StoryConfig) => {
-    // Check if language changed
     if (newConfig.uiLanguage !== config.uiLanguage) {
-        // If language changed, automatically update prompts to that language default
         const newPrompts = PROMPTS_MAP[newConfig.uiLanguage] || DEFAULT_PROMPTS;
         setPrompts(newPrompts);
         toast.info(`Language changed to ${newConfig.uiLanguage.toUpperCase()}`);
@@ -82,7 +77,6 @@ export const useStory = () => {
   const generatePlan = async (inputs: Partial<StoryPlan>) => {
     setIsGenerating(true);
     try {
-      // Use the global config language for the target language of the story
       const targetLanguage = config.uiLanguage; 
       
       const userPrompt = `
@@ -97,7 +91,6 @@ export const useStory = () => {
         { role: "user", content: userPrompt },
       ]);
 
-      // Robust JSON extraction
       let jsonString = result;
       const jsonMatch = result.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -114,7 +107,6 @@ export const useStory = () => {
       toast.success("Story plan generated successfully!");
     } catch (error: any) {
       console.error(error);
-      // Show the actual error message which might contain detailed API info now
       toast.error(error.message || "Failed to parse plan. Check API key or Model output.");
     } finally {
       setIsGenerating(false);
@@ -166,7 +158,6 @@ export const useStory = () => {
       toast.success(`Chapter ${chapterNum} written!`);
     } catch (error: any) {
       console.error(error);
-      // Show the actual error message
       toast.error(error.message || "Failed to write chapter");
     } finally {
       setIsGenerating(false);
@@ -215,6 +206,15 @@ export const useStory = () => {
     }
   };
 
+  const clearChapters = () => {
+      setStory(prev => ({
+          ...prev,
+          chapters: [],
+          currentChapterIndex: -1
+      }));
+      toast.success("Chapters cleared. Ready to start writing from scratch.");
+  };
+
   const downloadStory = () => {
     const { title, characters, outline } = story.plan;
     let text = `# ${title}\n\n`;
@@ -250,6 +250,7 @@ export const useStory = () => {
     editChapter,
     navigateChapter,
     resetStory,
+    clearChapters,
     downloadStory,
     isGenerating,
   };

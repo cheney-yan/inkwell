@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useStory } from "@/hooks/use-story";
-import { Loader2, BookOpen, PenTool, Download, Trash2, ChevronLeft, ChevronRight, Edit2, Save, RefreshCw } from "lucide-react";
+import { Loader2, BookOpen, PenTool, Download, Trash2, ChevronLeft, ChevronRight, Edit2, Save, RefreshCw, Play } from "lucide-react";
 import { useState } from "react";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,18 +24,21 @@ const Index = () => {
     editChapter,
     navigateChapter,
     resetStory,
+    clearChapters,
     downloadStory,
     isGenerating,
   } = useStory();
 
   const labels = UI_LABELS[config.uiLanguage] || UI_LABELS["en"];
 
+  // State
   const [premise, setPremise] = useState("");
   const [characters, setCharacters] = useState("");
   const [totalChapters, setTotalChapters] = useState(12);
   const [chapterInstructions, setChapterInstructions] = useState("");
   const [isEditingChapter, setIsEditingChapter] = useState(false);
   const [editContent, setEditContent] = useState("");
+  const [activeTab, setActiveTab] = useState("plan");
 
   const handleGeneratePlan = () => {
     generatePlan({ premise, characters, totalChapters });
@@ -49,6 +52,23 @@ const Index = () => {
             totalChapters: story.plan.totalChapters 
         });
     }
+  };
+  
+  const handleStartWriting = () => {
+      if (story.chapters.length > 0) {
+          if (confirm("This will delete all existing chapters and start fresh from Chapter 1. Continue?")) {
+              clearChapters();
+              setActiveTab("write");
+          }
+      } else {
+          setActiveTab("write");
+      }
+  };
+  
+  const handleClearChapters = () => {
+      if (confirm("Delete all written chapters? This cannot be undone.")) {
+          clearChapters();
+      }
   };
 
   const handleWriteChapter = () => {
@@ -172,7 +192,7 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        <Tabs defaultValue="write" className="flex-1 flex flex-col">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
           <div className="border-b px-6 pt-2">
              <TabsList>
                 <TabsTrigger value="plan">{labels.planTab}</TabsTrigger>
@@ -209,7 +229,23 @@ const Index = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>{labels.outlineLabel}</Label>
+                 <div className="flex justify-between items-center">
+                    <Label>{labels.outlineLabel}</Label>
+                    <Button 
+                        onClick={handleRegeneratePlan} 
+                        disabled={isGenerating} 
+                        variant="ghost"
+                        size="sm"
+                        className="h-8"
+                    >
+                        {isGenerating ? (
+                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        ) : (
+                        <RefreshCw className="mr-2 h-3 w-3" />
+                        )}
+                        {labels.regeneratePlanBtn}
+                    </Button>
+                 </div>
                 <Textarea 
                    className="font-mono text-sm"
                    value={story.plan.outline}
@@ -219,17 +255,12 @@ const Index = () => {
               </div>
               
               <Button 
-                onClick={handleRegeneratePlan} 
-                disabled={isGenerating} 
-                variant="secondary"
+                onClick={handleStartWriting}
                 className="w-full"
+                size="lg"
               >
-                {isGenerating ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                )}
-                {labels.regeneratePlanBtn}
+                  <Play className="mr-2 h-4 w-4" />
+                  {labels.startWritingBtn}
               </Button>
             </div>
           </TabsContent>
@@ -237,8 +268,13 @@ const Index = () => {
           <TabsContent value="write" className="flex-1 flex overflow-hidden">
             {/* Sidebar Chapter List */}
             <div className="w-64 border-r bg-muted/30 flex flex-col">
-               <div className="p-4 font-medium text-sm text-muted-foreground border-b">
-                 {labels.chapterList}
+               <div className="p-4 font-medium text-sm text-muted-foreground border-b flex justify-between items-center">
+                 <span>{labels.chapterList}</span>
+                 {story.chapters.length > 0 && (
+                     <button onClick={handleClearChapters} className="text-destructive hover:bg-destructive/10 p-1 rounded" title={labels.clearChaptersBtn}>
+                         <Trash2 className="h-4 w-4" />
+                     </button>
+                 )}
                </div>
                <ScrollArea className="flex-1">
                  <div className="p-2 space-y-1">
@@ -246,12 +282,7 @@ const Index = () => {
                       <button
                         key={chapter.id}
                         onClick={() => {
-                            // Can't directly set index via hook, but we can navigate 
-                            // by calculating difference, or just relying on Next/Prev buttons as per current design
-                            // For this simple UI, we'll keep it simple or implement a 'jumpTo' if needed later.
-                            // Currently the hook doesn't expose a 'setIndex' directly to the outside in the snippet provided previously,
-                            // but we can add it if needed. For now, this list is visual primarily.
-                            // If we want to make it clickable, we'd need to update use-story.
+                           // Navigation logic would go here if we implemented direct jump
                         }}
                         className={`w-full text-left px-3 py-2 rounded text-sm truncate ${
                           idx === story.currentChapterIndex 

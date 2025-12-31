@@ -163,7 +163,9 @@ export const UI_LABELS: Record<string, any> = {
     generating: "Generating...",
     save: "Save",
     edit: "Edit",
-    regeneratePlanBtn: "Regenerate Plan"
+    regeneratePlanBtn: "Regenerate Plan",
+    startWritingBtn: "Start Writing (Resets Chapters)",
+    clearChaptersBtn: "Clear All Chapters"
   },
   es: { 
     general: "General", api: "Config API", prompts: "Prompts", theme: "Tema", lang: "Idioma", dark: "Oscuro", light: "Claro", export: "Exportar Config", import: "Importar Config",
@@ -189,7 +191,9 @@ export const UI_LABELS: Record<string, any> = {
     generating: "Generando...",
     save: "Guardar",
     edit: "Editar",
-    regeneratePlanBtn: "Regenerar Plan"
+    regeneratePlanBtn: "Regenerar Plan",
+    startWritingBtn: "Empezar a Escribir (Reinicia Capítulos)",
+    clearChaptersBtn: "Borrar Capítulos"
   },
   fr: { 
     general: "Général", api: "Config API", prompts: "Prompts", theme: "Thème", lang: "Langue", dark: "Sombre", light: "Clair", export: "Exporter", import: "Importer",
@@ -215,7 +219,9 @@ export const UI_LABELS: Record<string, any> = {
     generating: "Génération...",
     save: "Enregistrer",
     edit: "Éditer",
-    regeneratePlanBtn: "Régénérer le Plan"
+    regeneratePlanBtn: "Régénérer le Plan",
+    startWritingBtn: "Commencer à écrire (Réinitialise les chapitres)",
+    clearChaptersBtn: "Effacer les chapitres"
   },
   de: { 
     general: "Allgemein", api: "API Konfig", prompts: "Prompts", theme: "Thema", lang: "Sprache", dark: "Dunkel", light: "Hell", export: "Einstellungen exportieren", import: "Einstellungen importieren",
@@ -241,7 +247,9 @@ export const UI_LABELS: Record<string, any> = {
     generating: "Generiere...",
     save: "Speichern",
     edit: "Bearbeiten",
-    regeneratePlanBtn: "Plan neu generieren"
+    regeneratePlanBtn: "Plan neu generieren",
+    startWritingBtn: "Schreiben starten (Kapitel zurücksetzen)",
+    clearChaptersBtn: "Kapitel löschen"
   },
   zh: { 
     general: "常规", api: "API配置", prompts: "提示词", theme: "主题", lang: "语言", dark: "深色", light: "浅色", export: "导出设置", import: "导入设置",
@@ -267,7 +275,9 @@ export const UI_LABELS: Record<string, any> = {
     generating: "生成中...",
     save: "保存",
     edit: "编辑",
-    regeneratePlanBtn: "重新生成大纲"
+    regeneratePlanBtn: "重新生成大纲",
+    startWritingBtn: "开始写作 (重置所有章节)",
+    clearChaptersBtn: "清空章节"
   },
   ja: { 
     general: "一般", api: "API設定", prompts: "プロンプト", theme: "テーマ", lang: "言語", dark: "ダーク", light: "ライト", export: "設定をエクスポート", import: "設定をインポート",
@@ -293,6 +303,8 @@ export const UI_LABELS: Record<string, any> = {
     generating: "生成中...",
     save: "保存",
     edit: "編集",
-    regeneratePlanBtn: "プランを再生成"
+    regeneratePlanBtn: "プランを再生成",
+    startWritingBtn: "執筆開始（章をリセット）",
+    clearChaptersBtn: "章をクリア"
   },
 };

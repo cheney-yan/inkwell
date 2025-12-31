@@ -214,6 +214,65 @@ export const useStory = () => {
     }
   };
 
+  const rewriteChapter = async (index: number, instructions: string) => {
+    setIsGenerating(true);
+    try {
+      const chapterNum = index + 1;
+      const context = story.chapters.slice(Math.max(0, index - 2), index).map(c => `Chapter ${c.id} Summary: ${c.summary}`).join("\n");
+      const genreValue = story.plan.genreValue || "custom";
+      
+      const effectivePrompts = story.plan.customPrompts || getGenrePrompts(genreValue, prompts);
+      
+      const outlineStr = Array.isArray(story.plan.outline) 
+          ? story.plan.outline.map((item, idx) => `Chapter ${idx + 1}: ${item}`).join('\n')
+          : story.plan.outline;
+
+      const userPrompt = `
+        Plan Context:
+        Title: ${story.plan.title}
+        Genre: ${story.plan.genre}
+        Characters: ${story.plan.characters}
+        Outline:
+        ${outlineStr}
+        
+        Previous Context:
+        ${context}
+
+        Task: REWRITE Chapter ${chapterNum}.
+        Specific Instructions for this rewrite: ${instructions || "Follow the outline, but improve the prose."}
+      `;
+
+      const content = await generateCompletion(config, [
+        { role: "system", content: effectivePrompts.writing },
+        { role: "user", content: userPrompt },
+      ]);
+
+      const summary = content.substring(0, 300) + "..."; 
+
+      const newChapter: Chapter = {
+        id: chapterNum.toString(),
+        title: `Chapter ${chapterNum}`,
+        content: content,
+        summary: summary,
+      };
+
+      setStory((prev) => {
+          const newChapters = [...prev.chapters];
+          newChapters[index] = newChapter;
+          return {
+            ...prev,
+            chapters: newChapters,
+          };
+      });
+      toast.success(`Chapter ${chapterNum} rewritten!`);
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Failed to rewrite chapter");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const editChapter = (index: number, newContent: string) => {
     setStory((prev) => {
       const updatedChapters = [...prev.chapters];
@@ -356,6 +415,7 @@ export const useStory = () => {
     updatePlan,
     generatePlan,
     generateChapter,
+    rewriteChapter,
     editChapter,
     deleteChapter,
     navigateChapter,

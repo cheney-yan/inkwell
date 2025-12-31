@@ -202,7 +202,13 @@ export const UI_LABELS: Record<string, any> = {
     promptsDesc: "Customize the AI instructions for this specific story.",
     planningPrompt: "Planning Prompt",
     writingPrompt: "Writing Prompt",
-    resetPrompts: "Reset to Genre Defaults"
+    resetPrompts: "Reset to Genre Defaults",
+    rewriteBtn: "Rewrite",
+    autoRewrite: "Auto-Rewrite (Follow Plan)",
+    customRewrite: "Rewrite with Instructions...",
+    rewriteDialogTitle: "Rewrite Chapter",
+    rewriteDialogDesc: "Provide specific instructions for rewriting this chapter. This will overwrite the current content.",
+    cancel: "Cancel"
   },
   zh: { 
     general: "常规", api: "API配置", prompts: "提示词", theme: "主题", lang: "语言", dark: "深色", light: "浅色", export: "导出设置", import: "导入设置",
@@ -237,7 +243,12 @@ export const UI_LABELS: Record<string, any> = {
     promptsDesc: "自定义此故事的 AI 指令。",
     planningPrompt: "大纲生成提示词",
     writingPrompt: "章节写作提示词",
-    resetPrompts: "重置为类型默认值"
+    resetPrompts: "重置为类型默认值",
+    rewriteBtn: "重写",
+    autoRewrite: "自动重写 (遵循大纲)",
+    customRewrite: "带指令重写...",
+    rewriteDialogTitle: "重写章节",
+    rewriteDialogDesc: "为重写本章提供具体指令。这将覆盖当前内容。",
+    cancel: "取消"
   },
-  // ... other languages would follow similar pattern, keeping English fallback for now to save space
 };

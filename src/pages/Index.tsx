@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useStory } from "@/hooks/use-story";
-import { Loader2, BookOpen, PenTool, Download, Trash2, ChevronLeft, ChevronRight, Edit2, Save, RefreshCw, Play, FileJson } from "lucide-react";
+import { Loader2, BookOpen, PenTool, Download, Trash2, ChevronLeft, ChevronRight, Edit2, Save, RefreshCw, Play, FileJson, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +15,20 @@ import { ChapterPlanList } from "@/components/ChapterPlanList";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getGenres, getGenrePrompts } from "@/lib/genres";
 import { GenrePromptsDialog } from "@/components/GenrePromptsDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const Index = () => {
   const {
@@ -26,6 +40,7 @@ const Index = () => {
     generatePlan,
     updatePlan,
     generateChapter,
+    rewriteChapter,
     editChapter,
     deleteChapter,
     navigateChapter,
@@ -48,6 +63,10 @@ const Index = () => {
   const [isEditingChapter, setIsEditingChapter] = useState(false);
   const [editContent, setEditContent] = useState("");
   const [activeTab, setActiveTab] = useState("plan");
+  
+  // Rewrite Dialog State
+  const [isRewriteDialogOpen, setIsRewriteDialogOpen] = useState(false);
+  const [rewriteInstructions, setRewriteInstructions] = useState("");
 
   // Effect to prefill chapter instructions when plan or chapter count changes
   useEffect(() => {
@@ -141,6 +160,22 @@ const Index = () => {
 
   const handleWriteChapter = () => {
     generateChapter(chapterInstructions);
+  };
+
+  const handleAutoRewrite = () => {
+      if (confirm("This will overwrite the current chapter content. Continue?")) {
+          rewriteChapter(story.currentChapterIndex, "");
+      }
+  };
+
+  const handleCustomRewrite = () => {
+      setIsRewriteDialogOpen(true);
+  };
+
+  const confirmCustomRewrite = () => {
+      rewriteChapter(story.currentChapterIndex, rewriteInstructions);
+      setIsRewriteDialogOpen(false);
+      setRewriteInstructions("");
   };
 
   const startEdit = () => {
@@ -449,6 +484,23 @@ const Index = () => {
                          </Button>
                          <span className="font-semibold">{currentChapter.title}</span>
                          <div className="flex gap-2">
+                            {/* Rewrite Button */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button size="sm" variant="outline" disabled={isGenerating}>
+                                        <Sparkles className="mr-2 h-4 w-4" /> {labels.rewriteBtn}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={handleAutoRewrite}>
+                                        {labels.autoRewrite}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={handleCustomRewrite}>
+                                        {labels.customRewrite}
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
                             {isEditingChapter ? (
                                 <Button size="sm" onClick={saveEdit}>
                                     <Save className="mr-2 h-4 w-4" /> {labels.save}
@@ -522,6 +574,30 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Rewrite Dialog */}
+      <Dialog open={isRewriteDialogOpen} onOpenChange={setIsRewriteDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>{labels.rewriteDialogTitle}</DialogTitle>
+                <DialogDescription>{labels.rewriteDialogDesc}</DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+                <Textarea 
+                    value={rewriteInstructions}
+                    onChange={(e) => setRewriteInstructions(e.target.value)}
+                    placeholder="E.g., Make the dialogue more intense, focus on the setting..."
+                    rows={4}
+                />
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsRewriteDialogOpen(false)}>{labels.cancel}</Button>
+                <Button onClick={confirmCustomRewrite} disabled={isGenerating}>
+                    {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : labels.rewriteBtn}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { StoryConfig, StoryState, SystemPrompts, DEFAULT_PROMPTS, Chapter, StoryPlan, PROMPTS_MAP } from "@/lib/types";
 import { generateCompletion } from "@/lib/openai";
 import { toast } from "sonner";
+import { getGenreSpecificPrompts } from "@/lib/genres";
 
 const STORAGE_KEY_STORY = "inkwell-story";
 const STORAGE_KEY_CONFIG = "inkwell-config";
@@ -43,6 +44,7 @@ export const useStory = () => {
       plan: {
         title: "",
         genre: "",
+        genreValue: "custom",
         language: "English",
         premise: "",
         characters: "",
@@ -84,16 +86,21 @@ export const useStory = () => {
     setIsGenerating(true);
     try {
       const targetLanguage = config.uiLanguage; 
+      const genreValue = inputs.genreValue || "custom";
+      
+      // Get prompts adjusted for genre
+      const effectivePrompts = getGenreSpecificPrompts(genreValue, prompts);
       
       const userPrompt = `
         Premise: ${inputs.premise}
         Desired Characters: ${inputs.characters}
         Target Language: ${targetLanguage}
+        Genre: ${inputs.genre}
         Approximate Chapters: ${inputs.totalChapters}
       `;
 
       const result = await generateCompletion(config, [
-        { role: "system", content: prompts.planning },
+        { role: "system", content: effectivePrompts.planning },
         { role: "user", content: userPrompt },
       ]);
 
@@ -110,15 +117,8 @@ export const useStory = () => {
           parsed.outline = parsed.outline.split('\n').filter((l:string) => l.trim().length > 0);
       }
       
-      // Clean up common numbering prefixes (e.g., "1.", "Chapter 1:", "第1章：", etc.)
       if (Array.isArray(parsed.outline)) {
          parsed.outline = parsed.outline.map((line: string) => {
-            // Remove "Chapter X:", "1.", "1 -", "第X章" etc.
-            // This regex covers:
-            // ^\s* -> start of string whitespace
-            // (?:Chapter\s+\d+|Part\s+\d+|[Cc]ap[ií]tulo\s+\d+|[Cc]hapitre\s+\d+|[Kk]apitel\s+\d+|第\s*\d+\s*[章回]) -> text prefix like "Chapter 1"
-            // [.:：\-]? -> optional separator
-            // \s* -> trailing whitespace
             return line.replace(/^\s*(?:(?:Chapter|Part|Cap[ií]tulo|Chapitre|Kapitel)\s+\d+|第\s*\d+\s*[章回]|\d+)\s*[.:：\-]?\s*/i, "");
          });
       }
@@ -126,7 +126,7 @@ export const useStory = () => {
       setStory((prev) => ({
         ...prev,
         hasPlan: true,
-        plan: { ...prev.plan, ...inputs, ...parsed, language: targetLanguage },
+        plan: { ...prev.plan, ...inputs, ...parsed, language: targetLanguage, genreValue },
       }));
       toast.success("Story plan generated successfully!");
     } catch (error: any) {
@@ -146,8 +146,11 @@ export const useStory = () => {
     try {
       const chapterNum = story.chapters.length + 1;
       const context = story.chapters.slice(-2).map(c => `Chapter ${c.id} Summary: ${c.summary}`).join("\n");
+      const genreValue = story.plan.genreValue || "custom";
       
-      // We need to re-number the outline for the LLM so it knows which part corresponds to which chapter
+      // Get prompts adjusted for genre
+      const effectivePrompts = getGenreSpecificPrompts(genreValue, prompts);
+      
       const outlineStr = Array.isArray(story.plan.outline) 
           ? story.plan.outline.map((item, idx) => `Chapter ${idx + 1}: ${item}`).join('\n')
           : story.plan.outline;
@@ -155,6 +158,7 @@ export const useStory = () => {
       const userPrompt = `
         Plan Context:
         Title: ${story.plan.title}
+        Genre: ${story.plan.genre}
         Characters: ${story.plan.characters}
         Outline:
         ${outlineStr}
@@ -167,7 +171,7 @@ export const useStory = () => {
       `;
 
       const content = await generateCompletion(config, [
-        { role: "system", content: prompts.writing },
+        { role: "system", content: effectivePrompts.writing },
         { role: "user", content: userPrompt },
       ]);
 
@@ -223,6 +227,7 @@ export const useStory = () => {
             plan: {
               title: "",
               genre: "",
+              genreValue: "custom",
               language: "English",
               premise: "",
               characters: "",

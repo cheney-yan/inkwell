@@ -1,10 +1,11 @@
 export interface StoryPlan {
   title: string;
   genre: string;
-  language: string; // Target language for the story text
+  genreValue?: string; // Storing the internal value for logic
+  language: string; 
   premise: string;
   characters: string;
-  outline: string[]; // Changed from string to string[]
+  outline: string[]; 
   totalChapters: number;
 }
 

@@ -12,6 +12,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { UI_LABELS } from "@/lib/types";
 import { extractChapterPlan } from "@/lib/story-utils";
 import { ChapterPlanList } from "@/components/ChapterPlanList";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { GENRES } from "@/lib/genres";
 
 const Index = () => {
   const {
@@ -36,6 +38,7 @@ const Index = () => {
   // State
   const [premise, setPremise] = useState("");
   const [characters, setCharacters] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("fantasy");
   const [totalChapters, setTotalChapters] = useState(12);
   const [chapterInstructions, setChapterInstructions] = useState("");
   const [isEditingChapter, setIsEditingChapter] = useState(false);
@@ -52,17 +55,41 @@ const Index = () => {
       }
     }
   }, [story.hasPlan, story.plan.outline, story.chapters.length, config.uiLanguage]);
+  
+  // Effect to sync story genre with local state if story is loaded
+  useEffect(() => {
+      if (story.hasPlan && story.plan.genre) {
+          // Try to match the story's genre string to our keys, or default to custom if not found
+          const match = GENRES.find(g => g.label === story.plan.genre || g.value === story.plan.genre);
+          if (match) {
+              setSelectedGenre(match.value);
+          } else {
+              setSelectedGenre("custom");
+          }
+      }
+  }, [story.hasPlan, story.plan.genre]);
 
   const handleGeneratePlan = () => {
-    generatePlan({ premise, characters, totalChapters });
+    const genreLabel = GENRES.find(g => g.value === selectedGenre)?.label || "Custom";
+    generatePlan({ 
+        premise, 
+        characters, 
+        totalChapters,
+        genre: genreLabel, 
+        genreValue: selectedGenre // We'll pass the value to the hook so it can adjust prompts
+    });
   };
 
   const handleRegeneratePlan = () => {
     if (confirm("This will overwrite your current outline and character list. Continue?")) {
+        // We re-use the existing plan data
         generatePlan({ 
             premise: story.plan.premise, 
             characters: story.plan.characters, 
-            totalChapters: story.plan.totalChapters 
+            totalChapters: story.plan.totalChapters,
+            genre: story.plan.genre,
+            // Re-derive the value key from the label if possible, or just pass what we have
+            genreValue: GENRES.find(g => g.label === story.plan.genre)?.value || "custom"
         });
     }
   };
@@ -86,8 +113,6 @@ const Index = () => {
 
   const handleWriteChapter = () => {
     generateChapter(chapterInstructions);
-    // Note: We don't clear setChapterInstructions here immediately because 
-    // the useEffect will trigger when chapters.length changes and prefill the NEXT chapter.
   };
 
   const startEdit = () => {
@@ -130,6 +155,20 @@ const Index = () => {
                 onChange={(e) => setPremise(e.target.value)}
                 rows={4}
               />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>{labels.genreLabel}</Label>
+              <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GENRES.map((g) => (
+                    <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="space-y-2">
@@ -226,10 +265,45 @@ const Index = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>{labels.genreLabel}</Label>
-                  <Input 
-                    value={story.plan.genre} 
-                    onChange={(e) => updatePlan({...story.plan, genre: e.target.value})}
-                  />
+                  <div className="flex gap-2">
+                    {/* Render select if it's one of the presets, otherwise render Input for custom text */}
+                    {selectedGenre !== 'custom' ? (
+                       <Select 
+                           value={selectedGenre} 
+                           onValueChange={(val) => {
+                               setSelectedGenre(val);
+                               const label = GENRES.find(g => g.value === val)?.label || "Custom";
+                               updatePlan({...story.plan, genre: label})
+                           }}
+                        >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {GENRES.map((g) => (
+                            <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                        <div className="flex flex-1 gap-2">
+                             <Input 
+                                value={story.plan.genre} 
+                                onChange={(e) => updatePlan({...story.plan, genre: e.target.value})}
+                                placeholder="Custom genre..."
+                             />
+                             <Button variant="ghost" onClick={() => setSelectedGenre('fantasy')} size="icon" title="Switch to list">
+                                 <RefreshCw className="h-4 w-4" />
+                             </Button>
+                        </div>
+                    )}
+                     {/* Allow switching to custom if currently selected */}
+                     {selectedGenre !== 'custom' && (
+                        <Button variant="ghost" onClick={() => setSelectedGenre('custom')} size="sm">
+                            Custom
+                        </Button>
+                     )}
+                  </div>
                 </div>
               </div>
 

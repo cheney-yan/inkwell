@@ -45,13 +45,13 @@ export const DEFAULT_PROMPTS: SystemPrompts = {
     "title": "Novel Title",
     "genre": "Genre",
     "outline": [
-      "Detailed summary of chapter 1...",
-      "Detailed summary of chapter 2..."
+      "Detailed summary of chapter 1 (synopsis only, NO numbering)",
+      "Detailed summary of chapter 2 (synopsis only, NO numbering)"
     ],
     "characters": "refined character list"
   }
   
-  The outline array should contain one string per chapter. Do NOT include "Chapter X:" or numbering prefixes in the outline strings. The application handles numbering automatically.`,
+  The outline array should contain one string per chapter. strictly DO NOT include "Chapter X:", "1.", or any numbering prefixes within the outline strings. The application handles numbering.`,
   writing: `You are a creative fiction writer. Write the requested chapter based on the story plan and previous context.
   
   Focus on showing, not telling. detailed sensory descriptions, and realistic dialogue. 
@@ -70,7 +70,7 @@ export const LANGUAGES = [
 export const PROMPTS_MAP: Record<string, SystemPrompts> = {
   en: DEFAULT_PROMPTS,
   es: {
-    planning: `Eres un novelista experto. Tu tarea es crear un esquema detallado capítulo por capítulo.
+    planning: `Eres un novelista experto. Crea un esquema detallado capítulo por capítulo.
     
     IMPORTANTE: Devuelve SOLO un objeto JSON válido. NO uses bloques markdown.
     
@@ -79,13 +79,13 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
       "title": "Título",
       "genre": "Género",
       "outline": [
-         "Resumen del capítulo 1...",
-         "Resumen del capítulo 2..."
+         "Resumen del capítulo 1 (solo sinopsis, SIN numeración)",
+         "Resumen del capítulo 2 (solo sinopsis, SIN numeración)"
       ],
       "characters": "lista de personajes"
     }
     
-    NO incluyas prefijos como "Capítulo X:" en las cadenas del esquema.`,
+    El array 'outline' debe contener solo el texto de la sinopsis. NO incluyas prefijos como "Capítulo 1", "1.", etc.`,
     writing: "Eres un escritor de ficción creativa. Escribe el capítulo solicitado basado en el plan...",
   },
   fr: {
@@ -98,13 +98,13 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
       "title": "Titre",
       "genre": "Genre",
       "outline": [
-        "Résumé du chapitre 1...",
-        "Résumé du chapitre 2..."
+        "Résumé du chapitre 1 (synopsis uniquement, PAS de numérotation)",
+        "Résumé du chapitre 2 (synopsis uniquement, PAS de numérotation)"
       ],
       "characters": "liste des personnages"
     }
     
-    N'incluez PAS de préfixes "Chapitre X :" dans les chaînes du plan.`,
+    Le tableau 'outline' ne doit contenir que le texte. N'incluez PAS de préfixes comme "Chapitre 1", "1.", etc.`,
     writing: "Vous êtes un écrivain de fiction créative. Écrivez le chapitre demandé...",
   },
   de: {
@@ -117,13 +117,13 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
       "title": "Titel",
       "genre": "Genre",
       "outline": [
-        "Zusammenfassung von Kapitel 1...",
-        "Zusammenfassung von Kapitel 2..."
+        "Zusammenfassung von Kapitel 1 (nur Inhalt, KEINE Nummerierung)",
+        "Zusammenfassung von Kapitel 2 (nur Inhalt, KEINE Nummerierung)"
       ],
       "characters": "Charakterliste"
     }
     
-    Füge KEINE Präfixe wie "Kapitel X:" in die Gliederungsstrings ein.`,
+    Das 'outline'-Array darf nur den Inhaltstext enthalten. Füge KEINE Präfixe wie "Kapitel 1", "1." usw. hinzu.`,
     writing: "Du bist ein kreativer Schriftsteller. Schreibe das angeforderte Kapitel...",
   },
   zh: {
@@ -136,13 +136,13 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
       "title": "标题",
       "genre": "类型",
       "outline": [
-        "第一章的摘要内容...",
-        "第二章的摘要内容..."
+        "第一章的摘要内容 (纯文本，不要包含'第一章'等前缀)",
+        "第二章的摘要内容 (纯文本，不要包含'第二章'等前缀)"
       ],
       "characters": "角色列表"
     }
     
-    outline 数组应包含每一章的字符串。请勿在大纲字符串中包含“第X章：”或数字前缀。系统会自动编号。`,
+    outline 数组必须仅包含摘要文本。绝对不要在大纲字符串中包含“第X章”、“1.”或任何数字前缀。应用程序会自动处理编号。`,
     writing: "你是一位创意小说作家。根据故事计划和以前的背景编写请求的章节...",
   },
   ja: {
@@ -155,13 +155,13 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
       "title": "タイトル",
       "genre": "ジャンル",
       "outline": [
-        "第1章のあらすじ...",
-        "第2章のあらすじ..."
+        "第1章のあらすじ (内容のみ、番号は含めない)",
+        "第2章のあらすじ (内容のみ、番号は含めない)"
       ],
       "characters": "キャラクターリスト"
     }
     
-    アウトラインの文字列に「第X章:」などのプレフィックスを含めないでください。`,
+    outline配列には、あらすじのテキストのみを含めてください。「第1章」、「1.」などの番号プレフィックスは絶対に入れないでください。`,
     writing: "あなたは創造的な小説家です。ストーリープランと以前のコンテキストに基づいて、要求された章を書いてください...",
   },
 };

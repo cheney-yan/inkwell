@@ -147,15 +147,17 @@ export const useStory = () => {
       const chapterNum = story.chapters.length + 1;
       const context = story.chapters.slice(-2).map(c => `Chapter ${c.id} Summary: ${c.summary}`).join("\n");
       
+      // We need to re-number the outline for the LLM so it knows which part corresponds to which chapter
       const outlineStr = Array.isArray(story.plan.outline) 
-          ? story.plan.outline.join('\n') 
+          ? story.plan.outline.map((item, idx) => `Chapter ${idx + 1}: ${item}`).join('\n')
           : story.plan.outline;
 
       const userPrompt = `
         Plan Context:
         Title: ${story.plan.title}
         Characters: ${story.plan.characters}
-        Outline: ${outlineStr}
+        Outline:
+        ${outlineStr}
         
         Previous Context:
         ${context}
@@ -247,8 +249,16 @@ export const useStory = () => {
     const { title, characters, outline } = story.plan;
     let text = `# ${title}\n\n`;
     text += `## Characters\n${characters}\n\n`;
-    text += `## Outline\n${Array.isArray(outline) ? outline.join('\n') : outline}\n\n`;
-    text += `---\n\n`;
+    
+    text += `## Outline\n`;
+    if (Array.isArray(outline)) {
+        outline.forEach((item, idx) => {
+            text += `${idx + 1}. ${item}\n`;
+        });
+    } else {
+        text += outline + "\n";
+    }
+    text += `\n---\n\n`;
 
     story.chapters.forEach((chapter) => {
       text += `## ${chapter.title}\n\n${chapter.content}\n\n`;

@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UI_LABELS } from "@/lib/types";
 import { extractChapterPlan } from "@/lib/story-utils";
+import { OutlineEditor } from "@/components/OutlineEditor";
 
 const Index = () => {
   const {
@@ -45,7 +46,8 @@ const Index = () => {
   useEffect(() => {
     if (story.hasPlan) {
       const nextChapterNum = story.chapters.length + 1;
-      const instruction = extractChapterPlan(story.plan.outline, nextChapterNum, config.uiLanguage);
+      // Updated utility call
+      const instruction = extractChapterPlan(story.plan.outline, nextChapterNum);
       if (instruction) {
         setChapterInstructions(instruction);
       }
@@ -242,7 +244,7 @@ const Index = () => {
               </div>
 
               <div className="space-y-2">
-                 <div className="flex justify-between items-center">
+                 <div className="flex justify-between items-center mb-2">
                     <Label>{labels.outlineLabel}</Label>
                     <Button 
                         onClick={handleRegeneratePlan} 
@@ -259,11 +261,10 @@ const Index = () => {
                         {labels.regeneratePlanBtn}
                     </Button>
                  </div>
-                <Textarea 
-                   className="font-mono text-sm"
-                   value={story.plan.outline}
-                   onChange={(e) => updatePlan({...story.plan, outline: e.target.value})}
-                   rows={15}
+                <OutlineEditor 
+                    items={story.plan.outline}
+                    onChange={(items) => updatePlan({...story.plan, outline: items})}
+                    labels={labels}
                 />
               </div>
               

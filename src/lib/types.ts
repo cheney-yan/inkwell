@@ -1,10 +1,16 @@
+export interface OutlineItem {
+  id: string;
+  title: string;
+  description: string;
+}
+
 export interface StoryPlan {
   title: string;
   genre: string;
   language: string; // Target language for the story text
   premise: string;
   characters: string;
-  outline: string;
+  outline: OutlineItem[]; // Changed from string to structured array
   totalChapters: number;
 }
 
@@ -38,17 +44,20 @@ export interface StoryConfig {
 export const DEFAULT_PROMPTS: SystemPrompts = {
   planning: `You are an expert novelist. Your task is to create a detailed, chapter-by-chapter outline for a novel based on the user's premise.
   
-  IMPORTANT: Return ONLY a valid JSON object. Do NOT wrap it in markdown code blocks (e.g. \`\`\`json ... \`\`\`). Do NOT include any intro or outro text. The response must start with '{' and end with '}'.
+  IMPORTANT: Return ONLY a valid JSON object. Do NOT wrap it in markdown code blocks. The response must start with '{' and end with '}'.
   
   Output a JSON object with this structure:
   {
     "title": "Novel Title",
     "genre": "Genre",
-    "outline": "Chapter 1: ... \nChapter 2: ...",
+    "outline": [
+      { "title": "Chapter 1: The Beginning", "description": "Detailed summary of chapter 1..." },
+      { "title": "Chapter 2: The Incident", "description": "Detailed summary of chapter 2..." }
+    ],
     "characters": "refined character list"
   }
   
-  Make the outline detailed enough to guide the writing process.`,
+  Ensure the outline array matches the requested number of chapters.`,
   writing: `You are a creative fiction writer. Write the requested chapter based on the story plan and previous context.
   
   Focus on showing, not telling. detailed sensory descriptions, and realistic dialogue. 
@@ -67,74 +76,74 @@ export const LANGUAGES = [
 export const PROMPTS_MAP: Record<string, SystemPrompts> = {
   en: DEFAULT_PROMPTS,
   es: {
-    planning: `Eres un novelista experto. Tu tarea es crear un esquema detallado capítulo por capítulo.
+    planning: `Eres un novelista experto. Tu tarea es crear un esquema detallado.
     
-    IMPORTANTE: Devuelve SOLO un objeto JSON válido. NO lo envuelvas en bloques de código markdown (ej. \`\`\`json ... \`\`\`). NO incluyas texto de introducción o conclusión. La respuesta debe empezar con '{' y terminar con '}'.
-    
-    Estructura JSON requerida:
+    IMPORTANTE: Devuelve SOLO un objeto JSON válido. NO uses markdown. Estructura requerida:
     {
       "title": "Título",
       "genre": "Género",
-      "outline": "Capítulo 1: ...",
-      "characters": "lista de personajes"
+      "outline": [
+        { "title": "Capítulo 1", "description": "Resumen..." }
+      ],
+      "characters": "personajes"
     }`,
-    writing: "Eres un escritor de ficción creativa. Escribe el capítulo solicitado basado en el plan...",
+    writing: "Eres un escritor de ficción creativa...",
   },
   fr: {
-    planning: `Vous êtes un romancier expert. Votre tâche est de créer un plan détaillé.
+    planning: `Vous êtes un romancier expert. Créez un plan détaillé.
     
-    IMPORTANT : Retournez UNIQUEMENT un objet JSON valide. NE PAS l'entourer de blocs de code markdown (ex. \`\`\`json ... \`\`\`). N'incluez AUCUN texte d'intro ou de conclusion. La réponse doit commencer par '{' et finir par '}'.
-    
-    Structure JSON requise :
+    IMPORTANT : Retournez UNIQUEMENT un JSON valide. Structure :
     {
       "title": "Titre",
       "genre": "Genre",
-      "outline": "Chapitre 1 : ...",
-      "characters": "liste des personnages"
+      "outline": [
+        { "title": "Chapitre 1", "description": "Résumé..." }
+      ],
+      "characters": "personnages"
     }`,
-    writing: "Vous êtes un écrivain de fiction créative. Écrivez le chapitre demandé...",
+    writing: "Vous êtes un écrivain de fiction créative...",
   },
   de: {
     planning: `Du bist ein erfahrener Romanautor. Erstelle eine detaillierte Gliederung.
     
-    WICHTIG: Gib NUR ein gültiges JSON-Objekt zurück. Packe es NICHT in Markdown-Codeblöcke (z.B. \`\`\`json ... \`\`\`). Füge KEINEN Einleitungs- oder Schluss-Text hinzu. Die Antwort muss mit '{' beginnen und mit '}' enden.
-    
-    Benötigte JSON-Struktur:
+    WICHTIG: Gib NUR ein gültiges JSON-Objekt zurück. Struktur:
     {
       "title": "Titel",
       "genre": "Genre",
-      "outline": "Kapitel 1: ...",
-      "characters": "Charakterliste"
+      "outline": [
+        { "title": "Kapitel 1", "description": "Zusammenfassung..." }
+      ],
+      "characters": "Charaktere"
     }`,
-    writing: "Du bist ein kreativer Schriftsteller. Schreibe das angeforderte Kapitel...",
+    writing: "Du bist ein kreativer Schriftsteller...",
   },
   zh: {
-    planning: `你是一位专家小说家。你的任务是创建一个详细的逐章大纲。
+    planning: `你是一位专家小说家。请创建一个详细的大纲。
     
-    重要：仅返回有效的 JSON 对象。不要将其包含在 markdown 代码块中（例如 \`\`\`json ... \`\`\`）。不要包含任何介绍或结尾文本。响应必须以 '{' 开头并以 '}' 结尾。
-    
-    JSON结构：
+    重要：仅返回有效的 JSON 对象。结构：
     {
       "title": "标题",
       "genre": "类型",
-      "outline": "第一章：...",
+      "outline": [
+        { "title": "第一章", "description": "摘要..." }
+      ],
       "characters": "角色列表"
     }`,
-    writing: "你是一位创意小说作家。根据故事计划和以前的背景编写请求的章节...",
+    writing: "你是一位创意小说作家...",
   },
   ja: {
-    planning: `あなたは熟練した小説家です。詳細な章ごとのアウトラインを作成してください。
+    planning: `あなたは熟練した小説家です。詳細なアウトラインを作成してください。
     
-    重要：有効なJSONオブジェクトのみを返してください。Markdownコードブロック（例：\`\`\`json ... \`\`\`）で囲まないでください。導入テキストや終了テキストを含めないでください。レスポンスは '{' で始まり '}' で終わる必要があります。
-    
-    必要なJSON構造：
+    重要：有効なJSONオブジェクトのみを返してください。構造：
     {
       "title": "タイトル",
       "genre": "ジャンル",
-      "outline": "第1章：...",
-      "characters": "キャラクターリスト"
+      "outline": [
+        { "title": "第1章", "description": "あらすじ..." }
+      ],
+      "characters": "キャラクター"
     }`,
-    writing: "あなたは創造的な小説家です。ストーリープランと以前のコンテキストに基づいて、要求された章を書いてください...",
+    writing: "あなたは創造的な小説家です...",
   },
 };
 
@@ -165,7 +174,9 @@ export const UI_LABELS: Record<string, any> = {
     edit: "Edit",
     regeneratePlanBtn: "Regenerate Plan",
     startWritingBtn: "Start Writing (Resets Chapters)",
-    clearChaptersBtn: "Clear All Chapters"
+    clearChaptersBtn: "Clear All Chapters",
+    addChapterBtn: "Add Chapter",
+    deleteChapterBtn: "Delete"
   },
   es: { 
     general: "General", api: "Config API", prompts: "Prompts", theme: "Tema", lang: "Idioma", dark: "Oscuro", light: "Claro", export: "Exportar Config", import: "Importar Config",
@@ -193,7 +204,9 @@ export const UI_LABELS: Record<string, any> = {
     edit: "Editar",
     regeneratePlanBtn: "Regenerar Plan",
     startWritingBtn: "Empezar a Escribir (Reinicia Capítulos)",
-    clearChaptersBtn: "Borrar Capítulos"
+    clearChaptersBtn: "Borrar Capítulos",
+    addChapterBtn: "Añadir Capítulo",
+    deleteChapterBtn: "Borrar"
   },
   fr: { 
     general: "Général", api: "Config API", prompts: "Prompts", theme: "Thème", lang: "Langue", dark: "Sombre", light: "Clair", export: "Exporter", import: "Importer",
@@ -221,7 +234,9 @@ export const UI_LABELS: Record<string, any> = {
     edit: "Éditer",
     regeneratePlanBtn: "Régénérer le Plan",
     startWritingBtn: "Commencer à écrire (Réinitialise les chapitres)",
-    clearChaptersBtn: "Effacer les chapitres"
+    clearChaptersBtn: "Effacer les chapitres",
+    addChapterBtn: "Ajouter un chapitre",
+    deleteChapterBtn: "Supprimer"
   },
   de: { 
     general: "Allgemein", api: "API Konfig", prompts: "Prompts", theme: "Thema", lang: "Sprache", dark: "Dunkel", light: "Hell", export: "Einstellungen exportieren", import: "Einstellungen importieren",
@@ -249,7 +264,9 @@ export const UI_LABELS: Record<string, any> = {
     edit: "Bearbeiten",
     regeneratePlanBtn: "Plan neu generieren",
     startWritingBtn: "Schreiben starten (Kapitel zurücksetzen)",
-    clearChaptersBtn: "Kapitel löschen"
+    clearChaptersBtn: "Kapitel löschen",
+    addChapterBtn: "Kapitel hinzufügen",
+    deleteChapterBtn: "Löschen"
   },
   zh: { 
     general: "常规", api: "API配置", prompts: "提示词", theme: "主题", lang: "语言", dark: "深色", light: "浅色", export: "导出设置", import: "导入设置",
@@ -277,7 +294,9 @@ export const UI_LABELS: Record<string, any> = {
     edit: "编辑",
     regeneratePlanBtn: "重新生成大纲",
     startWritingBtn: "开始写作 (重置所有章节)",
-    clearChaptersBtn: "清空章节"
+    clearChaptersBtn: "清空章节",
+    addChapterBtn: "添加章节",
+    deleteChapterBtn: "删除"
   },
   ja: { 
     general: "一般", api: "API設定", prompts: "プロンプト", theme: "テーマ", lang: "言語", dark: "ダーク", light: "ライト", export: "設定をエクスポート", import: "設定をインポート",
@@ -305,6 +324,8 @@ export const UI_LABELS: Record<string, any> = {
     edit: "編集",
     regeneratePlanBtn: "プランを再生成",
     startWritingBtn: "執筆開始（章をリセット）",
-    clearChaptersBtn: "章をクリア"
+    clearChaptersBtn: "章をクリア",
+    addChapterBtn: "章を追加",
+    deleteChapterBtn: "削除"
   },
 };

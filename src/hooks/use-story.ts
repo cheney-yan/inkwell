@@ -30,9 +30,21 @@ export const useStory = () => {
   // Story Content State
   const [story, setStory] = useState<StoryState>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_STORY);
-    return saved
-      ? JSON.parse(saved)
-      : {
+    // Migration: if saved story has old string outline, reset or convert
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            // Simple check if migration is needed
+            if (typeof parsed.plan?.outline === 'string') {
+                parsed.plan.outline = []; // Reset outline if it was a string to avoid crash
+            }
+            return parsed;
+        } catch (e) {
+            console.error("Failed to load saved story", e);
+        }
+    }
+    
+    return {
           hasPlan: false,
           plan: {
             title: "",
@@ -40,7 +52,7 @@ export const useStory = () => {
             language: "English",
             premise: "",
             characters: "",
-            outline: "",
+            outline: [],
             totalChapters: 12,
           },
           chapters: [],
@@ -99,6 +111,16 @@ export const useStory = () => {
 
       const parsed = JSON.parse(jsonString);
 
+      // Post-process to ensure IDs exist
+      if (Array.isArray(parsed.outline)) {
+          parsed.outline = parsed.outline.map((item: any) => ({
+              ...item,
+              id: item.id || Math.random().toString(36).substr(2, 9)
+          }));
+      } else {
+          parsed.outline = [];
+      }
+
       setStory((prev) => ({
         ...prev,
         hasPlan: true,
@@ -123,11 +145,15 @@ export const useStory = () => {
       const chapterNum = story.chapters.length + 1;
       const context = story.chapters.slice(-2).map(c => `Chapter ${c.id} Summary: ${c.summary}`).join("\n");
       
+      // Convert outline array back to string for prompt context
+      const outlineText = story.plan.outline.map((o, i) => `${i+1}. ${o.title}: ${o.description}`).join("\n");
+      
       const userPrompt = `
         Plan Context:
         Title: ${story.plan.title}
         Characters: ${story.plan.characters}
-        Outline: ${story.plan.outline}
+        Outline:
+        ${outlineText}
         
         Previous Context:
         ${context}
@@ -196,7 +222,7 @@ export const useStory = () => {
               language: "English",
               premise: "",
               characters: "",
-              outline: "",
+              outline: [],
               totalChapters: 12,
             },
             chapters: [],
@@ -219,7 +245,15 @@ export const useStory = () => {
     const { title, characters, outline } = story.plan;
     let text = `# ${title}\n\n`;
     text += `## Characters\n${characters}\n\n`;
-    text += `## Outline\n${outline}\n\n`;
+    text += `## Outline\n`;
+    
+    // Updated to handle array
+    if (Array.isArray(outline)) {
+        outline.forEach((item, i) => {
+            text += `${i+1}. ${item.title}\n${item.description}\n\n`;
+        });
+    }
+
     text += `---\n\n`;
 
     story.chapters.forEach((chapter) => {

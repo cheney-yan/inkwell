@@ -111,7 +111,8 @@ export const useStory = () => {
       toast.success("Story plan generated successfully!");
     } catch (error: any) {
       console.error(error);
-      toast.error("Failed to parse plan. Check API key or Model output.");
+      // Show the actual error message which might contain detailed API info now
+      toast.error(error.message || "Failed to parse plan. Check API key or Model output.");
     } finally {
       setIsGenerating(false);
     }
@@ -162,6 +163,7 @@ export const useStory = () => {
       toast.success(`Chapter ${chapterNum} written!`);
     } catch (error: any) {
       console.error(error);
+      // Show the actual error message
       toast.error(error.message || "Failed to write chapter");
     } finally {
       setIsGenerating(false);

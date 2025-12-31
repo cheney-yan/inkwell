@@ -6,7 +6,7 @@ import { KindleView } from "@/components/KindleView";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { Feather, Trash2 } from "lucide-react";
+import { Feather, Trash2, Download } from "lucide-react";
 
 const Index = () => {
   const {
@@ -18,8 +18,10 @@ const Index = () => {
     updatePlan,
     generatePlan,
     generateChapter,
+    editChapter,
     navigateChapter,
     resetStory,
+    downloadStory,
     isGenerating,
   } = useStory();
 
@@ -35,6 +37,15 @@ const Index = () => {
         </div>
         
         <div className="flex items-center gap-2">
+          {story.hasPlan && (
+             <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={downloadStory}
+            >
+              <Download className="h-4 w-4 mr-2" /> Export
+            </Button>
+          )}
           {story.hasPlan && (
             <Button 
               variant="ghost" 
@@ -80,6 +91,7 @@ const Index = () => {
             <KindleView
               story={story}
               onGenerateChapter={generateChapter}
+              onEditChapter={editChapter}
               onNavigate={navigateChapter}
               isGenerating={isGenerating}
             />

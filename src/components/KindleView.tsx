@@ -1,27 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StoryState } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronRight, BookOpen, PenTool, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, BookOpen, PenTool, Loader2, Edit2, Save, X } from "lucide-react";
 
 interface KindleViewProps {
   story: StoryState;
   onGenerateChapter: (instructions: string) => void;
   onNavigate: (direction: "next" | "prev") => void;
+  onEditChapter: (index: number, content: string) => void;
   isGenerating: boolean;
 }
 
-export function KindleView({ story, onGenerateChapter, onNavigate, isGenerating }: KindleViewProps) {
+export function KindleView({ story, onGenerateChapter, onNavigate, onEditChapter, isGenerating }: KindleViewProps) {
   const [instructions, setInstructions] = useState("");
-  const [showControls, setShowControls] = useState(false);
+  
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState("");
 
   const currentChapter = story.chapters[story.currentChapterIndex];
-  const isLastChapter = story.currentChapterIndex === story.chapters.length - 1;
-  // If we have no chapters yet, or we are at the very end and want to write the next one
-  const showWriteMode = story.chapters.length === 0 || (isLastChapter && !isGenerating); 
+  
+  // Reset edit state when chapter changes
+  useEffect(() => {
+    setIsEditing(false);
+    if (currentChapter) {
+      setEditContent(currentChapter.content);
+    }
+  }, [story.currentChapterIndex, currentChapter]);
 
-  // Calculate progress
+  const handleSave = () => {
+    onEditChapter(story.currentChapterIndex, editContent);
+    setIsEditing(false);
+  };
+
   const progress = story.chapters.length > 0 
     ? Math.round(((story.currentChapterIndex + 1) / story.chapters.length) * 100) 
     : 0;
@@ -36,9 +49,16 @@ export function KindleView({ story, onGenerateChapter, onNavigate, isGenerating 
           <span className="text-xs font-serif italic text-gray-500 truncate max-w-[200px]">
             {story.plan.title || "Untitled Story"}
           </span>
-          <span className="text-xs text-gray-400">
-            {story.chapters.length > 0 ? `Loc ${story.currentChapterIndex + 1} / ${story.chapters.length}` : "Start"}
-          </span>
+          <div className="flex items-center gap-4">
+            {currentChapter && !isEditing && (
+              <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400 hover:text-gray-900" onClick={() => { setIsEditing(true); setEditContent(currentChapter.content); }}>
+                <Edit2 className="h-3 w-3" />
+              </Button>
+            )}
+            <span className="text-xs text-gray-400">
+              {story.chapters.length > 0 ? `Loc ${story.currentChapterIndex + 1} / ${story.chapters.length}` : "Start"}
+            </span>
+          </div>
         </div>
 
         {/* CONTENT AREA */}
@@ -50,70 +70,90 @@ export function KindleView({ story, onGenerateChapter, onNavigate, isGenerating 
               <p className="text-sm">Use the controls below to write the first chapter.</p>
             </div>
           ) : (
-            <div className="animate-in fade-in duration-700">
+            <div className="animate-in fade-in duration-700 h-full">
               <h2 className="text-2xl font-bold mb-8 text-center">{currentChapter.title}</h2>
-              <div className="whitespace-pre-wrap">{currentChapter.content}</div>
+              {isEditing ? (
+                <div className="flex flex-col gap-4 h-full">
+                  <Textarea 
+                    className="flex-1 min-h-[400px] font-serif text-lg leading-relaxed bg-white"
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                  />
+                  <div className="flex justify-end gap-2 sticky bottom-0 bg-[#faf9f6] py-2">
+                    <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
+                      <X className="h-4 w-4 mr-2" /> Cancel
+                    </Button>
+                    <Button size="sm" onClick={handleSave}>
+                      <Save className="h-4 w-4 mr-2" /> Save Changes
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="whitespace-pre-wrap">{currentChapter.content}</div>
+              )}
             </div>
           )}
         </div>
 
         {/* FOOTER / CONTROLS */}
-        <div className="border-t border-gray-100 bg-white p-4 space-y-4">
-          
-          {/* NAVIGATION */}
-          {story.chapters.length > 0 && (
-            <div className="flex justify-between items-center px-4 mb-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onNavigate("prev")} 
-                disabled={story.currentChapterIndex <= 0}
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" /> Prev
-              </Button>
-              <span className="text-xs text-gray-400">{progress}%</span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onNavigate("next")} 
-                disabled={story.currentChapterIndex >= story.chapters.length - 1}
-              >
-                Next <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            </div>
-          )}
+        {!isEditing && (
+          <div className="border-t border-gray-100 bg-white p-4 space-y-4">
+            
+            {/* NAVIGATION */}
+            {story.chapters.length > 0 && (
+              <div className="flex justify-between items-center px-4 mb-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onNavigate("prev")} 
+                  disabled={story.currentChapterIndex <= 0}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" /> Prev
+                </Button>
+                <span className="text-xs text-gray-400">{progress}%</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onNavigate("next")} 
+                  disabled={story.currentChapterIndex >= story.chapters.length - 1}
+                >
+                  Next <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            )}
 
-          {/* GENERATION CONTROLS (Only show if at the end or empty) */}
-          {(story.chapters.length === 0 || story.currentChapterIndex === story.chapters.length - 1) && (
-             <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-               <Label className="text-xs uppercase text-gray-400 font-bold mb-2 block">
-                 Write Next Chapter
-               </Label>
-               <Textarea
-                 placeholder="Specific instructions for what happens next? (Optional - leave blank to follow outline)"
-                 className="mb-3 text-sm bg-white"
-                 value={instructions}
-                 onChange={(e) => setInstructions(e.target.value)}
-                 disabled={isGenerating}
-               />
-               <Button 
-                className="w-full bg-gray-900 hover:bg-gray-800 text-white" 
-                onClick={() => onGenerateChapter(instructions)}
-                disabled={isGenerating}
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Writing...
-                  </>
-                ) : (
-                  <>
-                    <PenTool className="mr-2 h-4 w-4" /> Generate Chapter
-                  </>
-                )}
-              </Button>
-             </div>
-          )}
-        </div>
+            {/* GENERATION CONTROLS (Only show if at the end or empty) */}
+            {(story.chapters.length === 0 || story.currentChapterIndex === story.chapters.length - 1) && (
+               <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                 <Label className="text-xs uppercase text-gray-400 font-bold mb-2 block">
+                   Write Next Chapter
+                 </Label>
+                 <Textarea
+                   placeholder="Specific instructions for what happens next? (Optional - leave blank to follow outline)"
+                   className="mb-3 text-sm bg-white"
+                   value={instructions}
+                   onChange={(e) => setInstructions(e.target.value)}
+                   disabled={isGenerating}
+                 />
+                 <Button 
+                  className="w-full bg-gray-900 hover:bg-gray-800 text-white" 
+                  onClick={() => { onGenerateChapter(instructions); setInstructions(""); }}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Writing...
+                    </>
+                  ) : (
+                    <>
+                      <PenTool className="mr-2 h-4 w-4" /> Generate Chapter
+                    </>
+                  )}
+                </Button>
+               </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

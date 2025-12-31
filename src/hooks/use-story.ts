@@ -67,9 +67,14 @@ export const useStory = () => {
         { role: "user", content: userPrompt },
       ]);
 
-      // Attempt to parse JSON response. If the model wraps in markdown code blocks, strip them.
-      const cleanJson = result.replace(/```json/g, "").replace(/```/g, "").trim();
-      const parsed = JSON.parse(cleanJson);
+      // Robust JSON extraction
+      let jsonString = result;
+      const jsonMatch = result.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        jsonString = jsonMatch[0];
+      }
+
+      const parsed = JSON.parse(jsonString);
 
       setStory((prev) => ({
         ...prev,
@@ -79,7 +84,7 @@ export const useStory = () => {
       toast.success("Story plan generated successfully!");
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message || "Failed to generate plan");
+      toast.error("Failed to parse plan. Check API key or Model output.");
     } finally {
       setIsGenerating(false);
     }
@@ -113,11 +118,6 @@ export const useStory = () => {
         { role: "user", content: userPrompt },
       ]);
 
-      // Generate a summary for the next context (separate lighter call or simple truncation if saving tokens)
-      // For this demo, we'll assume the model is good enough to just take the content. 
-      // Ideally, we'd ask for a summary too, but let's keep it simple for now and use the first 200 chars as 'summary' 
-      // or actually ask the AI to summarize in a future iteration. 
-      // Let's keep it robust: We will use the instructions + first paragraph as summary placeholder.
       const summary = content.substring(0, 300) + "..."; 
 
       const newChapter: Chapter = {
@@ -139,6 +139,19 @@ export const useStory = () => {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const editChapter = (index: number, newContent: string) => {
+    setStory((prev) => {
+      const updatedChapters = [...prev.chapters];
+      if (updatedChapters[index]) {
+        updatedChapters[index] = {
+          ...updatedChapters[index],
+          content: newContent,
+        };
+      }
+      return { ...prev, chapters: updatedChapters };
+    });
   };
 
   const navigateChapter = (direction: "next" | "prev") => {
@@ -170,6 +183,29 @@ export const useStory = () => {
     }
   };
 
+  const downloadStory = () => {
+    const { title, characters, outline } = story.plan;
+    let text = `# ${title}\n\n`;
+    text += `## Characters\n${characters}\n\n`;
+    text += `## Outline\n${outline}\n\n`;
+    text += `---\n\n`;
+
+    story.chapters.forEach((chapter) => {
+      text += `## ${chapter.title}\n\n${chapter.content}\n\n`;
+    });
+
+    const blob = new Blob([text], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${title.replace(/\s+/g, "_") || "story"}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Story downloaded!");
+  };
+
   return {
     config,
     updateConfig,
@@ -179,8 +215,10 @@ export const useStory = () => {
     updatePlan,
     generatePlan,
     generateChapter,
+    editChapter,
     navigateChapter,
     resetStory,
+    downloadStory,
     isGenerating,
   };
 };

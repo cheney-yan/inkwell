@@ -39,16 +39,15 @@ export function ChapterPlanList({ outline, onChange }: ChapterPlanListProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4 w-full">
         {outline.map((item, index) => (
             <div key={index} className="flex gap-2 items-start group">
-                <div className="flex flex-col gap-1 pt-2">
+                <div className="flex flex-col gap-1 pt-2 shrink-0">
                     <Button 
                         variant="ghost" 
                         size="icon" 
                         className="h-6 w-6 cursor-grab active:cursor-grabbing" 
-                        disabled // Drag n Drop is complex, simple arrows for now? Or just visual handle if no dnd lib.
-                        // Actually let's just use simple up/down buttons or keep it simple
+                        disabled 
                     >
                         <span className="font-mono text-xs text-muted-foreground">{index + 1}</span>
                     </Button>
@@ -57,10 +56,10 @@ export function ChapterPlanList({ outline, onChange }: ChapterPlanListProps) {
                 <Textarea 
                     value={item}
                     onChange={(e) => handleEdit(index, e.target.value)}
-                    className="flex-1 min-h-[80px] text-sm"
+                    className="flex-1 min-h-[100px] text-sm resize-y"
                 />
 
-                <div className="flex flex-col gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
+                <div className="flex flex-col gap-1 opacity-50 group-hover:opacity-100 transition-opacity shrink-0">
                      <Button 
                         variant="ghost" 
                         size="icon" 

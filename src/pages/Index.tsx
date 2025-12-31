@@ -182,7 +182,7 @@ const Index = () => {
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="border-b px-6 py-3 flex justify-between items-center bg-card">
+      <header className="border-b px-6 py-3 flex justify-between items-center bg-card shrink-0">
         <div className="flex items-center gap-2">
            <BookOpen className="h-5 w-5" />
            <h1 className="font-bold text-lg hidden md:block">{story.plan.title || labels.appTitle}</h1>
@@ -206,15 +206,15 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <div className="border-b px-6 pt-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+          <div className="border-b px-6 pt-2 shrink-0">
              <TabsList>
                 <TabsTrigger value="plan">{labels.planTab}</TabsTrigger>
                 <TabsTrigger value="write">{labels.writeTab}</TabsTrigger>
              </TabsList>
           </div>
 
-          <TabsContent value="plan" className="flex-1 p-6 overflow-auto">
+          <TabsContent value="plan" className="flex-1 overflow-y-auto p-6 min-h-0">
             <div className="max-w-4xl mx-auto space-y-6 pb-20">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -278,9 +278,9 @@ const Index = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="write" className="flex-1 flex overflow-hidden">
+          <TabsContent value="write" className="flex-1 flex overflow-hidden min-h-0">
             {/* Sidebar Chapter List */}
-            <div className="w-64 border-r bg-muted/30 flex flex-col hidden md:flex">
+            <div className="w-64 border-r bg-muted/30 flex flex-col hidden md:flex shrink-0">
                <div className="p-4 font-medium text-sm text-muted-foreground border-b flex justify-between items-center">
                  <span>{labels.chapterList}</span>
                  {story.chapters.length > 0 && (
@@ -316,10 +316,10 @@ const Index = () => {
             </div>
 
             {/* Writing Area */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden min-h-0">
                 {currentChapter ? (
-                  <div className="flex-1 flex flex-col overflow-hidden">
-                    <div className="flex justify-between items-center p-4 border-b">
+                  <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+                    <div className="flex justify-between items-center p-4 border-b shrink-0">
                          <Button 
                            variant="ghost" 
                            onClick={() => navigateChapter("prev")}
@@ -372,7 +372,7 @@ const Index = () => {
                 )}
 
                 {/* Writing Input */}
-                <div className="border-t p-4 bg-card">
+                <div className="border-t p-4 bg-card shrink-0">
                   <div className="max-w-5xl mx-auto flex gap-2">
                     <Input 
                       value={chapterInstructions}

@@ -169,6 +169,14 @@ const Index = () => {
   };
 
   const handleCustomRewrite = () => {
+      // Prefill with current chapter outline if available
+      const currentChapterNum = story.currentChapterIndex + 1;
+      const outlineText = extractChapterPlan(story.plan.outline, currentChapterNum, config.uiLanguage);
+      if (outlineText) {
+          setRewriteInstructions(outlineText);
+      } else {
+          setRewriteInstructions("");
+      }
       setIsRewriteDialogOpen(true);
   };
 

@@ -5,7 +5,8 @@ import { toast } from "sonner";
 
 const STORAGE_KEY_STORY = "inkwell-story";
 const STORAGE_KEY_CONFIG = "inkwell-config";
-const STORAGE_KEY_PROMPTS = "inkwell-prompts";
+// Updated storage key to force refresh of default prompts with new strict JSON instructions
+const STORAGE_KEY_PROMPTS = "inkwell-prompts-v2";
 
 export const useStory = () => {
   // Configuration State
@@ -24,6 +25,8 @@ export const useStory = () => {
   // System Prompts State (Debug Mode)
   const [prompts, setPrompts] = useState<SystemPrompts>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_PROMPTS);
+    // If we have saved prompts, we use them. BUT if the user switches languages, logic below handles it.
+    // Since we changed the KEY, this will default to DEFAULT_PROMPTS on first run after update.
     return saved ? JSON.parse(saved) : DEFAULT_PROMPTS;
   });
 

@@ -38,6 +38,8 @@ export interface StoryConfig {
 export const DEFAULT_PROMPTS: SystemPrompts = {
   planning: `You are an expert novelist. Your task is to create a detailed, chapter-by-chapter outline for a novel based on the user's premise.
   
+  IMPORTANT: Output strictly raw JSON only. Do not use Markdown code blocks (no \`\`\`json). Do not add any conversational text before or after the JSON.
+  
   Output a JSON object with this structure:
   {
     "title": "Novel Title",
@@ -65,23 +67,73 @@ export const LANGUAGES = [
 export const PROMPTS_MAP: Record<string, SystemPrompts> = {
   en: DEFAULT_PROMPTS,
   es: {
-    planning: "Eres un novelista experto. Tu tarea es crear un esquema detallado capítulo por capítulo...",
+    planning: `Eres un novelista experto. Tu tarea es crear un esquema detallado capítulo por capítulo.
+    
+    IMPORTANTE: Salida estrictamente JSON sin formato (raw JSON). No uses bloques de código Markdown (sin \`\`\`). Sin texto conversacional.
+    
+    Estructura JSON requerida:
+    {
+      "title": "Título",
+      "genre": "Género",
+      "outline": "Capítulo 1: ...",
+      "characters": "lista de personajes"
+    }`,
     writing: "Eres un escritor de ficción creativa. Escribe el capítulo solicitado basado en el plan...",
   },
   fr: {
-    planning: "Vous êtes un romancier expert. Votre tâche est de créer un plan détaillé...",
+    planning: `Vous êtes un romancier expert. Votre tâche est de créer un plan détaillé.
+    
+    IMPORTANT : Sortie strictement JSON brut uniquement. Pas de blocs de code Markdown. Pas de texte conversationnel.
+    
+    Structure JSON requise :
+    {
+      "title": "Titre",
+      "genre": "Genre",
+      "outline": "Chapitre 1 : ...",
+      "characters": "liste des personnages"
+    }`,
     writing: "Vous êtes un écrivain de fiction créative. Écrivez le chapitre demandé...",
   },
   de: {
-    planning: "Du bist ein erfahrener Romanautor. Erstelle eine detaillierte Gliederung...",
+    planning: `Du bist ein erfahrener Romanautor. Erstelle eine detaillierte Gliederung.
+    
+    WICHTIG: Gib nur reines JSON aus (raw JSON). Keine Markdown-Codeblöcke. Kein Konversationstext.
+    
+    Benötigte JSON-Struktur:
+    {
+      "title": "Titel",
+      "genre": "Genre",
+      "outline": "Kapitel 1: ...",
+      "characters": "Charakterliste"
+    }`,
     writing: "Du bist ein kreativer Schriftsteller. Schreibe das angeforderte Kapitel...",
   },
   zh: {
-    planning: "你是一位专家小说家。你的任务是根据用户的前提创建一个详细的逐章大纲...",
+    planning: `你是一位专家小说家。你的任务是创建一个详细的逐章大纲。
+    
+    重要：仅输出原始JSON格式。不要使用Markdown代码块（不要 \`\`\`json）。不要包含任何对话文本。
+    
+    JSON结构：
+    {
+      "title": "标题",
+      "genre": "类型",
+      "outline": "第一章：...",
+      "characters": "角色列表"
+    }`,
     writing: "你是一位创意小说作家。根据故事计划和以前的背景编写请求的章节...",
   },
   ja: {
-    planning: "あなたは熟練した小説家です。ユーザーの前提に基づいて、詳細な章ごとのアウトラインを作成してください...",
+    planning: `あなたは熟練した小説家です。詳細な章ごとのアウトラインを作成してください。
+    
+    重要：生のJSONのみを出力してください。Markdownコードブロックは使用しないでください。会話テキストは含めないでください。
+    
+    必要なJSON構造：
+    {
+      "title": "タイトル",
+      "genre": "ジャンル",
+      "outline": "第1章：...",
+      "characters": "キャラクターリスト"
+    }`,
     writing: "あなたは創造的な小説家です。ストーリープランと以前のコンテキストに基づいて、要求された章を書いてください...",
   },
 };

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useStory } from "@/hooks/use-story";
-import { Loader2, BookOpen, PenTool, Download, Trash2, ChevronLeft, ChevronRight, Edit2, Save, RefreshCw, Play, FileJson, Sparkles } from "lucide-react";
+import { Loader2, BookOpen, PenTool, Download, Trash2, ChevronLeft, ChevronRight, Edit2, Save, RefreshCw, Play, FileJson, Sparkles, Github } from "lucide-react";
 import { useState, useEffect } from "react";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +15,7 @@ import { ChapterPlanList } from "@/components/ChapterPlanList";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getGenres, getGenrePrompts } from "@/lib/genres";
 import { GenrePromptsDialog } from "@/components/GenrePromptsDialog";
+import { DisclaimerDialog } from "@/components/DisclaimerDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -201,7 +202,13 @@ const Index = () => {
   if (!story.hasPlan) {
     return (
       <div className="min-h-screen bg-background p-8 flex flex-col items-center justify-center">
-        <div className="absolute top-4 right-4">
+        <DisclaimerDialog />
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          <a href="https://github.com/rebelnii/inkwell" target="_blank" rel="noopener noreferrer">
+            <Button variant="ghost" size="icon">
+              <Github className="h-5 w-5" />
+            </Button>
+          </a>
           <SettingsDialog
             config={config}
             prompts={prompts}
@@ -291,6 +298,7 @@ const Index = () => {
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
+      <DisclaimerDialog />
       {/* Header */}
       <header className="border-b px-6 py-3 flex justify-between items-center bg-card shrink-0">
         <div className="flex items-center gap-2">
@@ -315,6 +323,11 @@ const Index = () => {
            <Button variant="outline" size="sm" onClick={resetStory} className="text-destructive hover:text-destructive">
              <Trash2 className="mr-2 h-4 w-4" /> {labels.resetBtn}
            </Button>
+           <a href="https://github.com/rebelnii/inkwell" target="_blank" rel="noopener noreferrer">
+            <Button variant="ghost" size="icon">
+              <Github className="h-5 w-5" />
+            </Button>
+           </a>
            <SettingsDialog
             config={config}
             prompts={prompts}

@@ -11,8 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, Moon, Sun, Download, Upload } from "lucide-react";
-import { StoryConfig, SystemPrompts, LANGUAGES, UI_LABELS } from "@/lib/types";
+import { Settings, Moon, Sun, Download, Upload, RotateCcw } from "lucide-react";
+import { StoryConfig, SystemPrompts, LANGUAGES, UI_LABELS, PROMPTS_MAP, DEFAULT_PROMPTS } from "@/lib/types";
 import { toast } from "sonner";
 import { useRef } from "react";
 
@@ -90,6 +90,14 @@ export function SettingsDialog({
     reader.readAsText(file);
   };
 
+  const handleResetPrompts = () => {
+    if (confirm("Reset prompts to default for current language?")) {
+        const defaults = PROMPTS_MAP[config.uiLanguage] || DEFAULT_PROMPTS;
+        onUpdatePrompts(defaults);
+        toast.success("Prompts reset to defaults");
+    }
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -97,7 +105,7 @@ export function SettingsDialog({
           <Settings className="h-5 w-5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl bg-background text-foreground">
+      <DialogContent className="max-w-2xl bg-background text-foreground max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Settings & Debug</DialogTitle>
         </DialogHeader>
@@ -211,6 +219,11 @@ export function SettingsDialog({
 
           {/* PROMPTS DEBUG TAB */}
           <TabsContent value="prompts" className="space-y-4 pt-4">
+            <div className="flex justify-end">
+                <Button variant="outline" size="sm" onClick={handleResetPrompts}>
+                    <RotateCcw className="mr-2 h-4 w-4" /> Reset to Defaults
+                </Button>
+            </div>
             <div className="space-y-2">
               <Label>Planning Prompt</Label>
               <Textarea

@@ -206,7 +206,7 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0 w-full">
           <div className="border-b px-6 pt-2 shrink-0">
              <TabsList>
                 <TabsTrigger value="plan">{labels.planTab}</TabsTrigger>
@@ -214,7 +214,7 @@ const Index = () => {
              </TabsList>
           </div>
 
-          <TabsContent value="plan" className="flex-1 overflow-y-auto p-6 min-h-0">
+          <TabsContent value="plan" className="flex-1 overflow-y-auto p-6 min-h-0 mt-0 data-[state=inactive]:hidden">
             <div className="max-w-4xl mx-auto space-y-6 pb-20">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -278,7 +278,7 @@ const Index = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="write" className="flex-1 flex overflow-hidden min-h-0">
+          <TabsContent value="write" className="flex-1 flex overflow-hidden min-h-0 mt-0 data-[state=inactive]:hidden">
             {/* Sidebar Chapter List */}
             <div className="w-64 border-r bg-muted/30 flex flex-col hidden md:flex shrink-0">
                <div className="p-4 font-medium text-sm text-muted-foreground border-b flex justify-between items-center">

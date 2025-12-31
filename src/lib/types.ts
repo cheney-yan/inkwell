@@ -45,13 +45,13 @@ export const DEFAULT_PROMPTS: SystemPrompts = {
     "title": "Novel Title",
     "genre": "Genre",
     "outline": [
-      "Chapter 1: Detailed summary...",
-      "Chapter 2: Detailed summary..."
+      "Detailed summary of chapter 1...",
+      "Detailed summary of chapter 2..."
     ],
     "characters": "refined character list"
   }
   
-  The outline array should contain one string per chapter. Make the summaries detailed enough to guide the writing process.`,
+  The outline array should contain one string per chapter. Do NOT include "Chapter X:" or numbering prefixes in the outline strings. The application handles numbering automatically.`,
   writing: `You are a creative fiction writer. Write the requested chapter based on the story plan and previous context.
   
   Focus on showing, not telling. detailed sensory descriptions, and realistic dialogue. 
@@ -79,11 +79,13 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
       "title": "Título",
       "genre": "Género",
       "outline": [
-         "Capítulo 1: Resumen...",
-         "Capítulo 2: Resumen..."
+         "Resumen del capítulo 1...",
+         "Resumen del capítulo 2..."
       ],
       "characters": "lista de personajes"
-    }`,
+    }
+    
+    NO incluyas prefijos como "Capítulo X:" en las cadenas del esquema.`,
     writing: "Eres un escritor de ficción creativa. Escribe el capítulo solicitado basado en el plan...",
   },
   fr: {
@@ -96,11 +98,13 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
       "title": "Titre",
       "genre": "Genre",
       "outline": [
-        "Chapitre 1 : Résumé...",
-        "Chapitre 2 : Résumé..."
+        "Résumé du chapitre 1...",
+        "Résumé du chapitre 2..."
       ],
       "characters": "liste des personnages"
-    }`,
+    }
+    
+    N'incluez PAS de préfixes "Chapitre X :" dans les chaînes du plan.`,
     writing: "Vous êtes un écrivain de fiction créative. Écrivez le chapitre demandé...",
   },
   de: {
@@ -113,11 +117,13 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
       "title": "Titel",
       "genre": "Genre",
       "outline": [
-        "Kapitel 1: Zusammenfassung...",
-        "Kapitel 2: Zusammenfassung..."
+        "Zusammenfassung von Kapitel 1...",
+        "Zusammenfassung von Kapitel 2..."
       ],
       "characters": "Charakterliste"
-    }`,
+    }
+    
+    Füge KEINE Präfixe wie "Kapitel X:" in die Gliederungsstrings ein.`,
     writing: "Du bist ein kreativer Schriftsteller. Schreibe das angeforderte Kapitel...",
   },
   zh: {
@@ -130,11 +136,13 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
       "title": "标题",
       "genre": "类型",
       "outline": [
-        "第一章：摘要...",
-        "第二章：摘要..."
+        "第一章的摘要内容...",
+        "第二章的摘要内容..."
       ],
       "characters": "角色列表"
-    }`,
+    }
+    
+    outline 数组应包含每一章的字符串。请勿在大纲字符串中包含“第X章：”或数字前缀。系统会自动编号。`,
     writing: "你是一位创意小说作家。根据故事计划和以前的背景编写请求的章节...",
   },
   ja: {
@@ -147,11 +155,13 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
       "title": "タイトル",
       "genre": "ジャンル",
       "outline": [
-        "第1章：あらすじ...",
-        "第2章：あらすじ..."
+        "第1章のあらすじ...",
+        "第2章のあらすじ..."
       ],
       "characters": "キャラクターリスト"
-    }`,
+    }
+    
+    アウトラインの文字列に「第X章:」などのプレフィックスを含めないでください。`,
     writing: "あなたは創造的な小説家です。ストーリープランと以前のコンテキストに基づいて、要求された章を書いてください...",
   },
 };

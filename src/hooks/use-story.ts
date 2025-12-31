@@ -105,9 +105,22 @@ export const useStory = () => {
 
       const parsed = JSON.parse(jsonString);
 
-      // Ensure outline is array
+      // Ensure outline is array and clean up prefixes
       if (typeof parsed.outline === 'string') {
           parsed.outline = parsed.outline.split('\n').filter((l:string) => l.trim().length > 0);
+      }
+      
+      // Clean up common numbering prefixes (e.g., "1.", "Chapter 1:", "第1章：", etc.)
+      if (Array.isArray(parsed.outline)) {
+         parsed.outline = parsed.outline.map((line: string) => {
+            // Remove "Chapter X:", "1.", "1 -", "第X章" etc.
+            // This regex covers:
+            // ^\s* -> start of string whitespace
+            // (?:Chapter\s+\d+|Part\s+\d+|[Cc]ap[ií]tulo\s+\d+|[Cc]hapitre\s+\d+|[Kk]apitel\s+\d+|第\s*\d+\s*[章回]) -> text prefix like "Chapter 1"
+            // [.:：\-]? -> optional separator
+            // \s* -> trailing whitespace
+            return line.replace(/^\s*(?:(?:Chapter|Part|Cap[ií]tulo|Chapitre|Kapitel)\s+\d+|第\s*\d+\s*[章回]|\d+)\s*[.:：\-]?\s*/i, "");
+         });
       }
 
       setStory((prev) => ({

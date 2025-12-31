@@ -162,7 +162,8 @@ export const UI_LABELS: Record<string, any> = {
     chapterInstructions: "Instructions for this chapter (optional)...",
     generating: "Generating...",
     save: "Save",
-    edit: "Edit"
+    edit: "Edit",
+    regeneratePlanBtn: "Regenerate Plan"
   },
   es: { 
     general: "General", api: "Config API", prompts: "Prompts", theme: "Tema", lang: "Idioma", dark: "Oscuro", light: "Claro", export: "Exportar Config", import: "Importar Config",
@@ -187,7 +188,8 @@ export const UI_LABELS: Record<string, any> = {
     chapterInstructions: "Instrucciones para este capítulo (opcional)...",
     generating: "Generando...",
     save: "Guardar",
-    edit: "Editar"
+    edit: "Editar",
+    regeneratePlanBtn: "Regenerar Plan"
   },
   fr: { 
     general: "Général", api: "Config API", prompts: "Prompts", theme: "Thème", lang: "Langue", dark: "Sombre", light: "Clair", export: "Exporter", import: "Importer",
@@ -212,7 +214,8 @@ export const UI_LABELS: Record<string, any> = {
     chapterInstructions: "Instructions pour ce chapitre (facultatif)...",
     generating: "Génération...",
     save: "Enregistrer",
-    edit: "Éditer"
+    edit: "Éditer",
+    regeneratePlanBtn: "Régénérer le Plan"
   },
   de: { 
     general: "Allgemein", api: "API Konfig", prompts: "Prompts", theme: "Thema", lang: "Sprache", dark: "Dunkel", light: "Hell", export: "Einstellungen exportieren", import: "Einstellungen importieren",
@@ -237,7 +240,8 @@ export const UI_LABELS: Record<string, any> = {
     chapterInstructions: "Anweisungen für dieses Kapitel (optional)...",
     generating: "Generiere...",
     save: "Speichern",
-    edit: "Bearbeiten"
+    edit: "Bearbeiten",
+    regeneratePlanBtn: "Plan neu generieren"
   },
   zh: { 
     general: "常规", api: "API配置", prompts: "提示词", theme: "主题", lang: "语言", dark: "深色", light: "浅色", export: "导出设置", import: "导入设置",
@@ -262,7 +266,8 @@ export const UI_LABELS: Record<string, any> = {
     chapterInstructions: "本章的具体指令（可选）...",
     generating: "生成中...",
     save: "保存",
-    edit: "编辑"
+    edit: "编辑",
+    regeneratePlanBtn: "重新生成大纲"
   },
   ja: { 
     general: "一般", api: "API設定", prompts: "プロンプト", theme: "テーマ", lang: "言語", dark: "ダーク", light: "ライト", export: "設定をエクスポート", import: "設定をインポート",
@@ -287,6 +292,7 @@ export const UI_LABELS: Record<string, any> = {
     chapterInstructions: "この章の指示（オプション）...",
     generating: "生成中...",
     save: "保存",
-    edit: "編集"
+    edit: "編集",
+    regeneratePlanBtn: "プランを再生成"
   },
 };

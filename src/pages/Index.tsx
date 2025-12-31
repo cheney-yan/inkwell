@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useStory } from "@/hooks/use-story";
-import { Loader2, BookOpen, PenTool, Download, Trash2, ChevronLeft, ChevronRight, Edit2, Save } from "lucide-react";
+import { Loader2, BookOpen, PenTool, Download, Trash2, ChevronLeft, ChevronRight, Edit2, Save, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,6 +39,16 @@ const Index = () => {
 
   const handleGeneratePlan = () => {
     generatePlan({ premise, characters, totalChapters });
+  };
+
+  const handleRegeneratePlan = () => {
+    if (confirm("This will overwrite your current outline and character list. Continue?")) {
+        generatePlan({ 
+            premise: story.plan.premise, 
+            characters: story.plan.characters, 
+            totalChapters: story.plan.totalChapters 
+        });
+    }
   };
 
   const handleWriteChapter = () => {
@@ -207,6 +217,20 @@ const Index = () => {
                    rows={15}
                 />
               </div>
+              
+              <Button 
+                onClick={handleRegeneratePlan} 
+                disabled={isGenerating} 
+                variant="secondary"
+                className="w-full"
+              >
+                {isGenerating ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                )}
+                {labels.regeneratePlanBtn}
+              </Button>
             </div>
           </TabsContent>
 

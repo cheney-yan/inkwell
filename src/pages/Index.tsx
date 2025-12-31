@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UI_LABELS } from "@/lib/types";
 import { extractChapterPlan } from "@/lib/story-utils";
-import { OutlineEditor } from "@/components/OutlineEditor";
 
 const Index = () => {
   const {
@@ -243,7 +242,7 @@ const Index = () => {
               </div>
 
               <div className="space-y-2">
-                 <div className="flex justify-between items-center mb-2">
+                 <div className="flex justify-between items-center">
                     <Label>{labels.outlineLabel}</Label>
                     <Button 
                         onClick={handleRegeneratePlan} 
@@ -260,16 +259,17 @@ const Index = () => {
                         {labels.regeneratePlanBtn}
                     </Button>
                  </div>
-                 
-                 <OutlineEditor 
-                    outline={story.plan.outline} 
-                    onChange={(newOutline) => updatePlan({...story.plan, outline: newOutline})}
-                 />
+                <Textarea 
+                   className="font-mono text-sm"
+                   value={story.plan.outline}
+                   onChange={(e) => updatePlan({...story.plan, outline: e.target.value})}
+                   rows={15}
+                />
               </div>
               
               <Button 
                 onClick={handleStartWriting}
-                className="w-full mt-8"
+                className="w-full"
                 size="lg"
               >
                   <Play className="mr-2 h-4 w-4" />

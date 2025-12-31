@@ -563,7 +563,7 @@ const Index = () => {
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <>
-                            <PenTool className="mr-2 h-4 w-4" />
+                            <Sparkles className="mr-2 h-4 w-4" />
                             {labels.writeChapterBtn}
                         </>
                       )}

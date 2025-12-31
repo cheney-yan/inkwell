@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { StoryConfig, StoryState, SystemPrompts, DEFAULT_PROMPTS, Chapter, StoryPlan } from "@/lib/types";
+import { StoryConfig, StoryState, SystemPrompts, DEFAULT_PROMPTS, Chapter, StoryPlan, PROMPTS_MAP } from "@/lib/types";
 import { generateCompletion } from "@/lib/openai";
 import { toast } from "sonner";
 
@@ -11,7 +11,14 @@ export const useStory = () => {
   // Configuration State
   const [config, setConfig] = useState<StoryConfig>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_CONFIG);
-    return saved ? JSON.parse(saved) : { apiKey: "", baseUrl: "https://api.openai.com/v1", model: "gpt-4o" };
+    const defaults = { 
+        apiKey: "", 
+        baseUrl: "https://api.openai.com/v1", 
+        model: "gpt-4o",
+        uiLanguage: "en",
+        theme: "light" as const
+    };
+    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
   });
 
   // System Prompts State (Debug Mode)
@@ -48,8 +55,25 @@ export const useStory = () => {
   useEffect(() => localStorage.setItem(STORAGE_KEY_PROMPTS, JSON.stringify(prompts)), [prompts]);
   useEffect(() => localStorage.setItem(STORAGE_KEY_STORY, JSON.stringify(story)), [story]);
 
+  // Theme Effect
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(config.theme);
+  }, [config.theme]);
+
   // Actions
-  const updateConfig = (newConfig: StoryConfig) => setConfig(newConfig);
+  const updateConfig = (newConfig: StoryConfig) => {
+    // Check if language changed
+    if (newConfig.uiLanguage !== config.uiLanguage) {
+        // If language changed, automatically update prompts to that language default
+        const newPrompts = PROMPTS_MAP[newConfig.uiLanguage] || DEFAULT_PROMPTS;
+        setPrompts(newPrompts);
+        toast.info(`Language changed to ${newConfig.uiLanguage.toUpperCase()}`);
+    }
+    setConfig(newConfig);
+  };
+
   const updatePrompts = (newPrompts: SystemPrompts) => setPrompts(newPrompts);
 
   const generatePlan = async (inputs: Partial<StoryPlan>) => {

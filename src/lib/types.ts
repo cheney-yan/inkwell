@@ -1,29 +1,18 @@
-export interface StoryConfig {
-  apiKey: string;
-  baseUrl: string;
-  model: string;
-}
-
-export interface SystemPrompts {
-  planning: string;
-  writing: string;
+export interface StoryPlan {
+  title: string;
+  genre: string;
+  language: string; // Target language for the story text
+  premise: string;
+  characters: string;
+  outline: string;
+  totalChapters: number;
 }
 
 export interface Chapter {
   id: string;
   title: string;
   content: string;
-  summary: string; // Used for context in next chapters
-}
-
-export interface StoryPlan {
-  title: string;
-  genre: string;
-  language: string;
-  premise: string;
-  characters: string;
-  outline: string;
-  totalChapters: number;
+  summary: string;
 }
 
 export interface StoryState {
@@ -33,19 +22,75 @@ export interface StoryState {
   currentChapterIndex: number;
 }
 
-export const DEFAULT_PROMPTS: SystemPrompts = {
-  planning: `You are an expert novelist and editor. Your task is to take a user's rough ideas and structure them into a comprehensive novel plan. 
-Return the response as a valid JSON object with the following structure:
-{
-  "title": "Novel Title",
-  "outline": "Detailed chapter-by-chapter outline...",
-  "characters": "Refined character list with arcs...",
-  "genre": "Genre",
-  "language": "Language of the novel"
+export interface SystemPrompts {
+  planning: string;
+  writing: string;
 }
-Ensure the outline provides enough narrative drive for a full book.`,
-  writing: `You are a best-selling author. Write the next chapter of the novel based on the provided Plan and Previous Chapter Summary.
-Style: Immersive, show-don't-tell, engaging prose.
-Output ONLY the story content for this chapter. Do not include the title or "Chapter X".
-Format with markdown for emphasis (*italics*, **bold**) if needed.`,
+
+export interface StoryConfig {
+  apiKey: string;
+  baseUrl: string;
+  model: string;
+  uiLanguage: string;
+  theme: "light" | "dark";
+}
+
+export const DEFAULT_PROMPTS: SystemPrompts = {
+  planning: `You are an expert novelist. Your task is to create a detailed, chapter-by-chapter outline for a novel based on the user's premise.
+  
+  Output a JSON object with this structure:
+  {
+    "title": "Novel Title",
+    "genre": "Genre",
+    "outline": "Chapter 1: ... \nChapter 2: ...",
+    "characters": "refined character list"
+  }
+  
+  Make the outline detailed enough to guide the writing process.`,
+  writing: `You are a creative fiction writer. Write the requested chapter based on the story plan and previous context.
+  
+  Focus on showing, not telling. detailed sensory descriptions, and realistic dialogue. 
+  Output only the story content (Markdown formatted). Do not include "Here is the chapter" or conversational filler.`,
+};
+
+export const LANGUAGES = [
+  { value: "en", label: "English" },
+  { value: "es", label: "Español" },
+  { value: "fr", label: "Français" },
+  { value: "de", label: "Deutsch" },
+  { value: "zh", label: "中文" },
+  { value: "ja", label: "日本語" },
+];
+
+export const PROMPTS_MAP: Record<string, SystemPrompts> = {
+  en: DEFAULT_PROMPTS,
+  es: {
+    planning: "Eres un novelista experto. Tu tarea es crear un esquema detallado capítulo por capítulo...",
+    writing: "Eres un escritor de ficción creativa. Escribe el capítulo solicitado basado en el plan...",
+  },
+  fr: {
+    planning: "Vous êtes un romancier expert. Votre tâche est de créer un plan détaillé...",
+    writing: "Vous êtes un écrivain de fiction créative. Écrivez le chapitre demandé...",
+  },
+  de: {
+    planning: "Du bist ein erfahrener Romanautor. Erstelle eine detaillierte Gliederung...",
+    writing: "Du bist ein kreativer Schriftsteller. Schreibe das angeforderte Kapitel...",
+  },
+  zh: {
+    planning: "你是一位专家小说家。你的任务是根据用户的前提创建一个详细的逐章大纲...",
+    writing: "你是一位创意小说作家。根据故事计划和以前的背景编写请求的章节...",
+  },
+  ja: {
+    planning: "あなたは熟練した小説家です。ユーザーの前提に基づいて、詳細な章ごとのアウトラインを作成してください...",
+    writing: "あなたは創造的な小説家です。ストーリープランと以前のコンテキストに基づいて、要求された章を書いてください...",
+  },
+};
+
+export const UI_LABELS: Record<string, any> = {
+  en: { general: "General", api: "API Config", prompts: "Prompts", theme: "Theme", lang: "Language", dark: "Dark", light: "Light" },
+  es: { general: "General", api: "Config API", prompts: "Prompts", theme: "Tema", lang: "Idioma", dark: "Oscuro", light: "Claro" },
+  fr: { general: "Général", api: "Config API", prompts: "Prompts", theme: "Thème", lang: "Langue", dark: "Sombre", light: "Clair" },
+  de: { general: "Allgemein", api: "API Konfig", prompts: "Prompts", theme: "Thema", lang: "Sprache", dark: "Dunkel", light: "Hell" },
+  zh: { general: "常规", api: "API配置", prompts: "提示词", theme: "主题", lang: "语言", dark: "深色", light: "浅色" },
+  ja: { general: "一般", api: "API設定", prompts: "プロンプト", theme: "テーマ", lang: "言語", dark: "ダーク", light: "ライト" },
 };

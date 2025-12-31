@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings } from "lucide-react";
-import { StoryConfig, SystemPrompts } from "@/lib/types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Settings, Moon, Sun } from "lucide-react";
+import { StoryConfig, SystemPrompts, LANGUAGES, UI_LABELS } from "@/lib/types";
 
 interface SettingsDialogProps {
   config: StoryConfig;
@@ -26,6 +27,9 @@ export function SettingsDialog({
   onUpdateConfig,
   onUpdatePrompts,
 }: SettingsDialogProps) {
+  
+  const labels = UI_LABELS[config.uiLanguage] || UI_LABELS["en"];
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -33,16 +37,62 @@ export function SettingsDialog({
           <Settings className="h-5 w-5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl bg-background text-foreground">
         <DialogHeader>
           <DialogTitle>Settings & Debug</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue="api" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="api">API Configuration</TabsTrigger>
-            <TabsTrigger value="prompts">System Prompts (Debug)</TabsTrigger>
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="general">{labels.general}</TabsTrigger>
+            <TabsTrigger value="api">{labels.api}</TabsTrigger>
+            <TabsTrigger value="prompts">{labels.prompts}</TabsTrigger>
           </TabsList>
           
+          {/* GENERAL TAB */}
+          <TabsContent value="general" className="space-y-4 pt-4">
+             <div className="space-y-2">
+              <Label>{labels.theme}</Label>
+              <div className="flex gap-2">
+                <Button 
+                  variant={config.theme === 'light' ? "default" : "outline"} 
+                  onClick={() => onUpdateConfig({ ...config, theme: "light" })}
+                  className="w-full"
+                >
+                  <Sun className="mr-2 h-4 w-4" /> {labels.light}
+                </Button>
+                <Button 
+                  variant={config.theme === 'dark' ? "default" : "outline"} 
+                  onClick={() => onUpdateConfig({ ...config, theme: "dark" })}
+                  className="w-full"
+                >
+                  <Moon className="mr-2 h-4 w-4" /> {labels.dark}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{labels.lang}</Label>
+              <Select 
+                value={config.uiLanguage} 
+                onValueChange={(val) => onUpdateConfig({ ...config, uiLanguage: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LANGUAGES.map((lang) => (
+                    <SelectItem key={lang.value} value={lang.value}>
+                      {lang.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Changing language will also update the default System Prompts.
+              </p>
+            </div>
+          </TabsContent>
+
           {/* API CONFIG TAB */}
           <TabsContent value="api" className="space-y-4 pt-4">
             <div className="space-y-2">

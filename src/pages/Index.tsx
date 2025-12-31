@@ -280,7 +280,7 @@ const Index = () => {
 
           <TabsContent value="write" className="flex-1 flex overflow-hidden">
             {/* Sidebar Chapter List */}
-            <div className="w-64 border-r bg-muted/30 flex flex-col">
+            <div className="w-64 border-r bg-muted/30 flex flex-col hidden md:flex">
                <div className="p-4 font-medium text-sm text-muted-foreground border-b flex justify-between items-center">
                  <span>{labels.chapterList}</span>
                  {story.chapters.length > 0 && (
@@ -295,7 +295,7 @@ const Index = () => {
                       <button
                         key={chapter.id}
                         onClick={() => {
-                           // Navigation logic would go here if we implemented direct jump
+                           // Logic to set current chapter if index was exposed
                         }}
                         className={`w-full text-left px-3 py-2 rounded text-sm truncate ${
                           idx === story.currentChapterIndex 
@@ -348,18 +348,20 @@ const Index = () => {
                          </div>
                     </div>
                     
-                    <div className="flex-1 overflow-auto p-8 max-w-3xl mx-auto w-full">
-                        {isEditingChapter ? (
-                            <Textarea 
-                                className="min-h-[500px] font-serif text-lg leading-relaxed p-4"
-                                value={editContent}
-                                onChange={(e) => setEditContent(e.target.value)}
-                            />
-                        ) : (
-                            <div className="whitespace-pre-wrap font-serif text-lg leading-relaxed">
-                                {currentChapter.content}
-                            </div>
-                        )}
+                    <div className="flex-1 overflow-auto p-4 md:p-8 w-full">
+                        <div className="max-w-5xl mx-auto w-full min-h-full flex flex-col">
+                            {isEditingChapter ? (
+                                <Textarea 
+                                    className="flex-1 min-h-[60vh] font-serif text-lg leading-relaxed p-4 resize-y"
+                                    value={editContent}
+                                    onChange={(e) => setEditContent(e.target.value)}
+                                />
+                            ) : (
+                                <div className="flex-1 whitespace-pre-wrap font-serif text-lg leading-relaxed pb-20">
+                                    {currentChapter.content}
+                                </div>
+                            )}
+                        </div>
                     </div>
                   </div>
                 ) : (
@@ -371,7 +373,7 @@ const Index = () => {
 
                 {/* Writing Input */}
                 <div className="border-t p-4 bg-card">
-                  <div className="max-w-3xl mx-auto flex gap-2">
+                  <div className="max-w-5xl mx-auto flex gap-2">
                     <Input 
                       value={chapterInstructions}
                       onChange={(e) => setChapterInstructions(e.target.value)}

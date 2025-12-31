@@ -5,11 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useStory } from "@/hooks/use-story";
 import { Loader2, BookOpen, PenTool, Download, Trash2, ChevronLeft, ChevronRight, Edit2, Save, RefreshCw, Play } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UI_LABELS } from "@/lib/types";
+import { extractChapterPlan } from "@/lib/story-utils";
 
 const Index = () => {
   const {
@@ -39,6 +40,17 @@ const Index = () => {
   const [isEditingChapter, setIsEditingChapter] = useState(false);
   const [editContent, setEditContent] = useState("");
   const [activeTab, setActiveTab] = useState("plan");
+
+  // Effect to prefill chapter instructions when plan or chapter count changes
+  useEffect(() => {
+    if (story.hasPlan) {
+      const nextChapterNum = story.chapters.length + 1;
+      const instruction = extractChapterPlan(story.plan.outline, nextChapterNum, config.uiLanguage);
+      if (instruction) {
+        setChapterInstructions(instruction);
+      }
+    }
+  }, [story.hasPlan, story.plan.outline, story.chapters.length, config.uiLanguage]);
 
   const handleGeneratePlan = () => {
     generatePlan({ premise, characters, totalChapters });
@@ -73,7 +85,8 @@ const Index = () => {
 
   const handleWriteChapter = () => {
     generateChapter(chapterInstructions);
-    setChapterInstructions("");
+    // Note: We don't clear setChapterInstructions here immediately because 
+    // the useEffect will trigger when chapters.length changes and prefill the NEXT chapter.
   };
 
   const startEdit = () => {

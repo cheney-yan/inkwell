@@ -11,8 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, Moon, Sun } from "lucide-react";
+import { Settings, Moon, Sun, Download, Upload } from "lucide-react";
 import { StoryConfig, SystemPrompts, LANGUAGES, UI_LABELS } from "@/lib/types";
+import { toast } from "sonner";
+import { useRef } from "react";
 
 interface SettingsDialogProps {
   config: StoryConfig;
@@ -29,6 +31,64 @@ export function SettingsDialog({
 }: SettingsDialogProps) {
   
   const labels = UI_LABELS[config.uiLanguage] || UI_LABELS["en"];
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExport = () => {
+    const data = {
+      config,
+      prompts
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `inkwell-settings-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Settings exported!");
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const result = event.target?.result as string;
+        const data = JSON.parse(result);
+        
+        let importedCount = 0;
+        if (data.config) {
+            onUpdateConfig(data.config);
+            importedCount++;
+        }
+        if (data.prompts) {
+            onUpdatePrompts(data.prompts);
+            importedCount++;
+        }
+        
+        if (importedCount > 0) {
+            toast.success("Settings imported successfully!");
+        } else {
+            toast.error("Invalid settings file format.");
+        }
+        
+        // Reset input so same file can be selected again if needed
+        e.target.value = "";
+      } catch (err) {
+        console.error("Failed to parse settings file", err);
+        toast.error("Failed to parse settings file");
+      }
+    };
+    reader.readAsText(file);
+  };
 
   return (
     <Dialog>
@@ -90,6 +150,24 @@ export function SettingsDialog({
               <p className="text-xs text-muted-foreground">
                 Changing language will also update the default System Prompts.
               </p>
+            </div>
+
+            <div className="pt-4 border-t border-border">
+                <div className="grid grid-cols-2 gap-4">
+                    <Button variant="outline" onClick={handleExport}>
+                        <Download className="mr-2 h-4 w-4" /> {labels.export}
+                    </Button>
+                    <Button variant="outline" onClick={handleImportClick}>
+                        <Upload className="mr-2 h-4 w-4" /> {labels.import}
+                    </Button>
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept=".json" 
+                        onChange={handleImportFile}
+                    />
+                </div>
             </div>
           </TabsContent>
 

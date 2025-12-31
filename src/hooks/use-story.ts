@@ -1,0 +1,186 @@
+import { useState, useEffect } from "react";
+import { StoryConfig, StoryState, SystemPrompts, DEFAULT_PROMPTS, Chapter, StoryPlan } from "@/lib/types";
+import { generateCompletion } from "@/lib/openai";
+import { toast } from "sonner";
+
+const STORAGE_KEY_STORY = "inkwell-story";
+const STORAGE_KEY_CONFIG = "inkwell-config";
+const STORAGE_KEY_PROMPTS = "inkwell-prompts";
+
+export const useStory = () => {
+  // Configuration State
+  const [config, setConfig] = useState<StoryConfig>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_CONFIG);
+    return saved ? JSON.parse(saved) : { apiKey: "", baseUrl: "https://api.openai.com/v1", model: "gpt-4o" };
+  });
+
+  // System Prompts State (Debug Mode)
+  const [prompts, setPrompts] = useState<SystemPrompts>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_PROMPTS);
+    return saved ? JSON.parse(saved) : DEFAULT_PROMPTS;
+  });
+
+  // Story Content State
+  const [story, setStory] = useState<StoryState>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_STORY);
+    return saved
+      ? JSON.parse(saved)
+      : {
+          hasPlan: false,
+          plan: {
+            title: "",
+            genre: "",
+            language: "English",
+            premise: "",
+            characters: "",
+            outline: "",
+            totalChapters: 12,
+          },
+          chapters: [],
+          currentChapterIndex: -1,
+        };
+  });
+
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Persistence Effects
+  useEffect(() => localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(config)), [config]);
+  useEffect(() => localStorage.setItem(STORAGE_KEY_PROMPTS, JSON.stringify(prompts)), [prompts]);
+  useEffect(() => localStorage.setItem(STORAGE_KEY_STORY, JSON.stringify(story)), [story]);
+
+  // Actions
+  const updateConfig = (newConfig: StoryConfig) => setConfig(newConfig);
+  const updatePrompts = (newPrompts: SystemPrompts) => setPrompts(newPrompts);
+
+  const generatePlan = async (inputs: Partial<StoryPlan>) => {
+    setIsGenerating(true);
+    try {
+      const userPrompt = `
+        Premise: ${inputs.premise}
+        Desired Characters: ${inputs.characters}
+        Target Language: ${inputs.language}
+        Approximate Chapters: ${inputs.totalChapters}
+      `;
+
+      const result = await generateCompletion(config, [
+        { role: "system", content: prompts.planning },
+        { role: "user", content: userPrompt },
+      ]);
+
+      // Attempt to parse JSON response. If the model wraps in markdown code blocks, strip them.
+      const cleanJson = result.replace(/```json/g, "").replace(/```/g, "").trim();
+      const parsed = JSON.parse(cleanJson);
+
+      setStory((prev) => ({
+        ...prev,
+        hasPlan: true,
+        plan: { ...prev.plan, ...inputs, ...parsed },
+      }));
+      toast.success("Story plan generated successfully!");
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Failed to generate plan");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const updatePlan = (newPlan: StoryPlan) => {
+    setStory((prev) => ({ ...prev, plan: newPlan }));
+  };
+
+  const generateChapter = async (instructions: string) => {
+    setIsGenerating(true);
+    try {
+      const chapterNum = story.chapters.length + 1;
+      const context = story.chapters.slice(-2).map(c => `Chapter ${c.id} Summary: ${c.summary}`).join("\n");
+      
+      const userPrompt = `
+        Plan Context:
+        Title: ${story.plan.title}
+        Characters: ${story.plan.characters}
+        Outline: ${story.plan.outline}
+        
+        Previous Context:
+        ${context}
+
+        Task: Write Chapter ${chapterNum}.
+        Specific Instructions for this chapter: ${instructions || "Follow the outline."}
+      `;
+
+      const content = await generateCompletion(config, [
+        { role: "system", content: prompts.writing },
+        { role: "user", content: userPrompt },
+      ]);
+
+      // Generate a summary for the next context (separate lighter call or simple truncation if saving tokens)
+      // For this demo, we'll assume the model is good enough to just take the content. 
+      // Ideally, we'd ask for a summary too, but let's keep it simple for now and use the first 200 chars as 'summary' 
+      // or actually ask the AI to summarize in a future iteration. 
+      // Let's keep it robust: We will use the instructions + first paragraph as summary placeholder.
+      const summary = content.substring(0, 300) + "..."; 
+
+      const newChapter: Chapter = {
+        id: chapterNum.toString(),
+        title: `Chapter ${chapterNum}`,
+        content: content,
+        summary: summary,
+      };
+
+      setStory((prev) => ({
+        ...prev,
+        chapters: [...prev.chapters, newChapter],
+        currentChapterIndex: prev.chapters.length, // Point to the new chapter
+      }));
+      toast.success(`Chapter ${chapterNum} written!`);
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Failed to write chapter");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const navigateChapter = (direction: "next" | "prev") => {
+    setStory((prev) => {
+      let nextIndex = prev.currentChapterIndex + (direction === "next" ? 1 : -1);
+      if (nextIndex < 0) nextIndex = 0;
+      if (nextIndex >= prev.chapters.length) nextIndex = prev.chapters.length - 1;
+      return { ...prev, currentChapterIndex: nextIndex };
+    });
+  };
+
+  const resetStory = () => {
+    if (confirm("Are you sure? This will delete the current story.")) {
+        setStory({
+            hasPlan: false,
+            plan: {
+              title: "",
+              genre: "",
+              language: "English",
+              premise: "",
+              characters: "",
+              outline: "",
+              totalChapters: 12,
+            },
+            chapters: [],
+            currentChapterIndex: -1,
+        });
+        toast.success("Story reset.");
+    }
+  };
+
+  return {
+    config,
+    updateConfig,
+    prompts,
+    updatePrompts,
+    story,
+    updatePlan,
+    generatePlan,
+    generateChapter,
+    navigateChapter,
+    resetStory,
+    isGenerating,
+  };
+};

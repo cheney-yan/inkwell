@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { StoryConfig, StoryState, SystemPrompts, DEFAULT_PROMPTS, Chapter, StoryPlan, PROMPTS_MAP } from "@/lib/types";
 import { generateCompletion } from "@/lib/openai";
 import { toast } from "sonner";
-import { getGenreSpecificPrompts } from "@/lib/genres";
+import { getGenrePrompts } from "@/lib/genres";
 
 const STORAGE_KEY_STORY = "inkwell-story";
 const STORAGE_KEY_CONFIG = "inkwell-config";
@@ -22,7 +22,7 @@ export const useStory = () => {
     return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
   });
 
-  // System Prompts State (Debug Mode)
+  // System Prompts State (Global Defaults)
   const [prompts, setPrompts] = useState<SystemPrompts>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_PROMPTS);
     return saved ? JSON.parse(saved) : DEFAULT_PROMPTS;
@@ -88,8 +88,8 @@ export const useStory = () => {
       const targetLanguage = config.uiLanguage; 
       const genreValue = inputs.genreValue || "custom";
       
-      // Get prompts adjusted for genre
-      const effectivePrompts = getGenreSpecificPrompts(genreValue, prompts);
+      // Determine prompts: Use custom if set, otherwise derive from genre + global defaults
+      const effectivePrompts = story.plan.customPrompts || getGenrePrompts(genreValue, prompts);
       
       const userPrompt = `
         Premise: ${inputs.premise}
@@ -148,8 +148,8 @@ export const useStory = () => {
       const context = story.chapters.slice(-2).map(c => `Chapter ${c.id} Summary: ${c.summary}`).join("\n");
       const genreValue = story.plan.genreValue || "custom";
       
-      // Get prompts adjusted for genre
-      const effectivePrompts = getGenreSpecificPrompts(genreValue, prompts);
+      // Determine prompts: Use custom if set, otherwise derive from genre + global defaults
+      const effectivePrompts = story.plan.customPrompts || getGenrePrompts(genreValue, prompts);
       
       const outlineStr = Array.isArray(story.plan.outline) 
           ? story.plan.outline.map((item, idx) => `Chapter ${idx + 1}: ${item}`).join('\n')
@@ -281,6 +281,23 @@ export const useStory = () => {
     toast.success("Story downloaded!");
   };
 
+  const exportJson = () => {
+    const data = {
+        story,
+        config: { ...config, apiKey: "" } // Don't export API key
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${story.plan.title.replace(/\s+/g, "_") || "story"}_data.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Story data exported!");
+  };
+
   return {
     config,
     updateConfig,
@@ -295,6 +312,7 @@ export const useStory = () => {
     resetStory,
     clearChapters,
     downloadStory,
+    exportJson,
     isGenerating,
   };
 };

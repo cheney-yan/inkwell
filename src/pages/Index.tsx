@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useStory } from "@/hooks/use-story";
-import { Loader2, BookOpen, PenTool, Download, Trash2, ChevronLeft, ChevronRight, Edit2, Save, RefreshCw, Play } from "lucide-react";
+import { Loader2, BookOpen, PenTool, Download, Trash2, ChevronLeft, ChevronRight, Edit2, Save, RefreshCw, Play, FileJson } from "lucide-react";
 import { useState, useEffect } from "react";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +13,8 @@ import { UI_LABELS } from "@/lib/types";
 import { extractChapterPlan } from "@/lib/story-utils";
 import { ChapterPlanList } from "@/components/ChapterPlanList";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { GENRES } from "@/lib/genres";
+import { getGenres, getGenrePrompts } from "@/lib/genres";
+import { GenrePromptsDialog } from "@/components/GenrePromptsDialog";
 
 const Index = () => {
   const {
@@ -30,10 +31,12 @@ const Index = () => {
     resetStory,
     clearChapters,
     downloadStory,
+    exportJson,
     isGenerating,
   } = useStory();
 
   const labels = UI_LABELS[config.uiLanguage] || UI_LABELS["en"];
+  const genres = getGenres(config.uiLanguage);
 
   // State
   const [premise, setPremise] = useState("");
@@ -60,39 +63,43 @@ const Index = () => {
   useEffect(() => {
       if (story.hasPlan && story.plan.genre) {
           // Try to match the story's genre string to our keys, or default to custom if not found
-          const match = GENRES.find(g => g.label === story.plan.genre || g.value === story.plan.genre);
+          const match = genres.find(g => g.label === story.plan.genre || g.value === story.plan.genre);
           if (match) {
               setSelectedGenre(match.value);
           } else {
-              setSelectedGenre("custom");
+              // If we can't match by label (e.g. language changed), try by value if stored
+              if (story.plan.genreValue) {
+                  setSelectedGenre(story.plan.genreValue);
+              } else {
+                  setSelectedGenre("custom");
+              }
           }
       }
       if (story.hasPlan && story.plan.totalChapters) {
           setTotalChapters(story.plan.totalChapters);
       }
-  }, [story.hasPlan, story.plan.genre, story.plan.totalChapters]);
+  }, [story.hasPlan, story.plan.genre, story.plan.totalChapters, story.plan.genreValue, genres]);
 
   const handleGeneratePlan = () => {
-    const genreLabel = GENRES.find(g => g.value === selectedGenre)?.label || "Custom";
+    const genreLabel = genres.find(g => g.value === selectedGenre)?.label || "Custom";
     generatePlan({ 
         premise, 
         characters, 
         totalChapters,
         genre: genreLabel, 
-        genreValue: selectedGenre // We'll pass the value to the hook so it can adjust prompts
+        genreValue: selectedGenre 
     });
   };
 
   const handleRegeneratePlan = () => {
     if (confirm("This will overwrite your current outline and character list. Continue?")) {
-        // We re-use the existing plan data
+        const genreLabel = genres.find(g => g.value === selectedGenre)?.label || story.plan.genre;
         generatePlan({ 
             premise: story.plan.premise, 
             characters: story.plan.characters, 
-            totalChapters: totalChapters, // Use the local state which might be updated
-            genre: story.plan.genre,
-            // Re-derive the value key from the label if possible, or just pass what we have
-            genreValue: GENRES.find(g => g.label === story.plan.genre)?.value || "custom"
+            totalChapters: totalChapters, 
+            genre: genreLabel,
+            genreValue: selectedGenre
         });
     }
   };
@@ -167,7 +174,7 @@ const Index = () => {
                   <SelectValue placeholder="Select a genre" />
                 </SelectTrigger>
                 <SelectContent>
-                  {GENRES.map((g) => (
+                  {genres.map((g) => (
                     <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -231,6 +238,16 @@ const Index = () => {
         </div>
         
         <div className="flex items-center gap-2">
+           <GenrePromptsDialog 
+              currentPrompts={story.plan.customPrompts || getGenrePrompts(selectedGenre, prompts)}
+              defaultPrompts={getGenrePrompts(selectedGenre, prompts)}
+              onSave={(newPrompts) => updatePlan({ ...story.plan, customPrompts: newPrompts })}
+              onReset={() => updatePlan({ ...story.plan, customPrompts: undefined })}
+              language={config.uiLanguage}
+           />
+           <Button variant="outline" size="icon" onClick={exportJson} title={labels.exportJsonBtn}>
+             <FileJson className="h-4 w-4" />
+           </Button>
            <Button variant="outline" size="sm" onClick={downloadStory}>
              <Download className="mr-2 h-4 w-4" /> {labels.downloadBtn}
            </Button>
@@ -269,37 +286,23 @@ const Index = () => {
                 <div className="space-y-2">
                   <Label>{labels.genreLabel}</Label>
                   <div className="flex gap-2">
-                    {/* Render select if it's one of the presets, otherwise render Input for custom text */}
-                    {selectedGenre !== 'custom' ? (
                        <Select 
                            value={selectedGenre} 
                            onValueChange={(val) => {
                                setSelectedGenre(val);
-                               const label = GENRES.find(g => g.value === val)?.label || "Custom";
-                               updatePlan({...story.plan, genre: label})
+                               const label = genres.find(g => g.value === val)?.label || "Custom";
+                               updatePlan({...story.plan, genre: label, genreValue: val})
                            }}
                         >
                         <SelectTrigger className="flex-1">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {GENRES.map((g) => (
+                          {genres.map((g) => (
                             <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    ) : (
-                        <div className="flex flex-1 gap-2">
-                             <Input 
-                                value={story.plan.genre} 
-                                onChange={(e) => updatePlan({...story.plan, genre: e.target.value})}
-                                placeholder="Custom genre..."
-                             />
-                             <Button variant="ghost" onClick={() => setSelectedGenre('fantasy')} size="icon" title="Switch to list">
-                                 <RefreshCw className="h-4 w-4" />
-                             </Button>
-                        </div>
-                    )}
                   </div>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StoryPlan } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,11 @@ interface PlanningViewProps {
 export function PlanningView({ plan, onGenerate, onUpdate, isGenerating, hasPlan }: PlanningViewProps) {
   // Local state for the inputs before generation, or editing the plan after
   const [formData, setFormData] = useState<StoryPlan>(plan);
+
+  // Update local state when the parent plan changes (e.g., after AI generation)
+  useEffect(() => {
+    setFormData(plan);
+  }, [plan]);
 
   const handleChange = (field: keyof StoryPlan, value: any) => {
     const updated = { ...formData, [field]: value };

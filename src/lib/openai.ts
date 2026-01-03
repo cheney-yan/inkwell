@@ -28,14 +28,23 @@ export const generateCompletion = async (
   config: StoryConfig,
   messages: { role: "system" | "user" | "assistant"; content: string }[]
 ) => {
+  // If no API key and not using backend server, show helpful error
+  if (!config.apiKey && !config.useBackendServer) {
+    throw new Error(
+      "No API key configured.\n\n" +
+      "Please go to Settings and either:\n" +
+      "1. Enter your OpenAI API key in the API Config tab, or\n" +
+      "2. Enable 'Use Backend Server' in the Backend Server tab (requires running the backend locally)"
+    );
+  }
+
   // Determine if we should use the backend server
-  // Use backend if: explicitly enabled OR no API key provided
-  const useBackend = config.useBackendServer || !config.apiKey;
+  const useBackend = config.useBackendServer;
   
-  // Show privacy warning when using backend without explicit opt-in
-  if (useBackend && !config.apiKey && !config.useBackendServer) {
-    toast.warning("Using default backend model. Your chat messages are not private.", {
-      id: "backend-privacy-warning", // Prevent duplicate toasts
+  // Show privacy warning when using backend
+  if (useBackend) {
+    toast.warning("Using backend server. Your chat messages may not be private.", {
+      id: "backend-privacy-warning",
       duration: 5000,
     });
   }
@@ -58,7 +67,7 @@ export const generateCompletion = async (
       method: "POST",
       headers,
       body: JSON.stringify({
-        model: useBackend ? undefined : config.model, // Backend uses its own model
+        model: useBackend ? undefined : config.model,
         messages,
         temperature: 0.7,
       }),
@@ -70,18 +79,15 @@ export const generateCompletion = async (
       try {
         const errorJson = await response.json();
         
-        // Handle standard OpenAI error format
         if (errorJson.error) {
              const { message, type, code } = errorJson.error;
              if (message) errorDetails += `\nMessage: ${message}`;
              if (type) errorDetails += `\nType: ${type}`;
              if (code) errorDetails += `\nCode: ${code}`;
         } else {
-            // Handle other JSON error formats
             errorDetails += `\nResponse: ${JSON.stringify(errorJson, null, 2)}`;
         }
       } catch (jsonError) {
-        // If JSON parsing fails, try to read text
         try {
             const text = await response.text();
             if (text) errorDetails += `\nResponse: ${text.slice(0, 500)}`;
@@ -96,11 +102,24 @@ export const generateCompletion = async (
     const data = await response.json();
     return data.choices[0].message.content;
   } catch (error: any) {
-    // If it's already our formatted error, rethrow. Otherwise format it.
-    if (error.message && error.message.includes("Status:")) {
+    // Handle network errors specifically for backend server
+    if (useBackend && error.message && error.message.includes("Failed to fetch")) {
+      throw new Error(
+        "Backend server is not available.\n\n" +
+        "To start the backend server:\n" +
+        "1. Copy .env.example to .env\n" +
+        "2. Add your OpenAI API key to .env\n" +
+        "3. Run: npx tsx server/index.ts\n\n" +
+        "Or disable 'Use Backend Server' in Settings and use your own API key."
+      );
+    }
+    
+    // If it's already our formatted error, rethrow
+    if (error.message && (error.message.includes("Status:") || error.message.includes("No API key"))) {
         throw error;
     }
-    // Handle network errors (e.g. offline)
+    
+    // Handle other network errors
     throw new Error(`Network/Request Error: ${error.message}`);
   }
 };

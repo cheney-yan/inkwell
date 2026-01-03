@@ -30,9 +30,9 @@ export const generateCompletion = async (
   const useBackend = !config.apiKey;
   
   if (useBackend) {
-    toast.info("Using server-side API", {
+    toast.info("Using inkwell AI server - we suggest you configure your own API for better privacy control .", {
       id: "backend-info",
-      duration: 3000,
+      duration: 5000,
     });
   }
   

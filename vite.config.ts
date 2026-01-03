@@ -7,6 +7,13 @@ export default defineConfig(() => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      // Proxy /api requests to the Express backend in local dev
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      }
+    }
   },
   plugins: [dyadComponentTagger(), react()],
   resolve: {

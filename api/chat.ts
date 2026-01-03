@@ -1,28 +1,11 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-// Load environment variables
-dotenv.config();
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Only allow POST
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: { message: 'Method not allowed' } });
+  }
 
-const app = express();
-const PORT = process.env.PORT || 3001;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Health check endpoint
-app.get("/api/health", (req, res) => {
-  res.json({ 
-    status: "ok", 
-    hasApiKey: !!process.env.OPENAI_API_KEY,
-    model: process.env.OPENAI_MODEL || "gpt-4o"
-  });
-});
-
-// Chat completions endpoint
-app.post("/api/chat", async (req, res) => {
   const apiKey = process.env.OPENAI_API_KEY;
   const baseUrl = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
   const model = process.env.OPENAI_MODEL || "gpt-4o";
@@ -30,7 +13,7 @@ app.post("/api/chat", async (req, res) => {
   if (!apiKey) {
     return res.status(500).json({
       error: {
-        message: "Server API key not configured. Please set OPENAI_API_KEY in .env file.",
+        message: "Server API key not configured. Please set OPENAI_API_KEY environment variable.",
         type: "configuration_error",
         code: "missing_api_key"
       }
@@ -68,20 +51,14 @@ app.post("/api/chat", async (req, res) => {
     }
 
     const data = await response.json();
-    res.json(data);
+    return res.status(200).json(data);
   } catch (error: any) {
     console.error("API Error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         message: error.message || "Internal server error",
         type: "server_error"
       }
     });
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`🚀 Inkwell AI Server running on http://localhost:${PORT}`);
-  console.log(`📝 API Key configured: ${process.env.OPENAI_API_KEY ? "Yes" : "No"}`);
-  console.log(`🤖 Model: ${process.env.OPENAI_MODEL || "gpt-4o"}`);
-});
+}

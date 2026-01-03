@@ -1,11 +1,16 @@
 import { StoryConfig } from "./types";
 import { toast } from "sonner";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
+// Use relative path for API routes - works in both local dev and Vercel production
+const getApiUrl = (path: string) => {
+  // In production (Vercel), use relative path
+  // In local dev with Vite, the proxy will handle it OR we fall back to direct backend
+  return `/api/${path}`;
+};
 
 export const checkBackendHealth = async (): Promise<{ available: boolean; hasApiKey: boolean; model?: string }> => {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/health`, {
+    const response = await fetch(getApiUrl("health"), {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -28,36 +33,27 @@ export const generateCompletion = async (
   config: StoryConfig,
   messages: { role: "system" | "user" | "assistant"; content: string }[]
 ) => {
-  // If no API key and not using backend server, show helpful error
-  if (!config.apiKey && !config.useBackendServer) {
-    throw new Error(
-      "No API key configured.\n\n" +
-      "Please go to Settings and either:\n" +
-      "1. Enter your OpenAI API key in the API Config tab, or\n" +
-      "2. Enable 'Use Backend Server' in the Backend Server tab (requires running the backend locally)"
-    );
-  }
-
-  // Determine if we should use the backend server
-  const useBackend = config.useBackendServer;
+  // Determine if we should use the backend server (Vercel API routes)
+  // Use backend if: explicitly enabled OR no API key provided
+  const useBackend = config.useBackendServer || !config.apiKey;
   
   // Show privacy warning when using backend
   if (useBackend) {
-    toast.warning("Using backend server. Your chat messages may not be private.", {
+    toast.warning("Using default backend model. Your chat messages may not be private.", {
       id: "backend-privacy-warning",
       duration: 5000,
     });
   }
   
   const targetUrl = useBackend 
-    ? `${BACKEND_URL}/api/chat/completions`
+    ? getApiUrl("chat")
     : `${config.baseUrl}/chat/completions`;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
-  // Only add Authorization header if using direct API
+  // Only add Authorization header if using direct API (user's own key)
   if (!useBackend) {
     headers["Authorization"] = `Bearer ${config.apiKey}`;
   }
@@ -102,20 +98,17 @@ export const generateCompletion = async (
     const data = await response.json();
     return data.choices[0].message.content;
   } catch (error: any) {
-    // Handle network errors specifically for backend server
+    // Handle network errors for backend
     if (useBackend && error.message && error.message.includes("Failed to fetch")) {
       throw new Error(
-        "Backend server is not available.\n\n" +
-        "To start the backend server:\n" +
-        "1. Copy .env.example to .env\n" +
-        "2. Add your OpenAI API key to .env\n" +
-        "3. Run: npx tsx server/index.ts\n\n" +
-        "Or disable 'Use Backend Server' in Settings and use your own API key."
+        "Backend API is not available.\n\n" +
+        "If running locally, make sure to run 'vercel dev' instead of 'npm run dev'.\n\n" +
+        "Or configure your own API key in Settings > API Config."
       );
     }
     
     // If it's already our formatted error, rethrow
-    if (error.message && (error.message.includes("Status:") || error.message.includes("No API key"))) {
+    if (error.message && error.message.includes("Status:")) {
         throw error;
     }
     

@@ -35,7 +35,6 @@ export interface StoryConfig {
   model: string;
   uiLanguage: string;
   theme: "light" | "dark";
-  useBackendServer: boolean; // New: fallback to backend when no API key
 }
 
 export const DEFAULT_PROMPTS: SystemPrompts = {
@@ -206,17 +205,11 @@ export const UI_LABELS: Record<string, any> = {
     resetPrompts: "Reset to Genre Defaults",
     rewriteBtn: "Rewrite",
     autoRewrite: "Auto-Rewrite (Follow Plan)",
-    customRewrite: "Rewrite with Instructions...",
+    customRe: "Rewrite with Instructions...",
     rewriteDialogTitle: "Rewrite Chapter",
     rewriteDialogDesc: "Provide specific instructions for rewriting this chapter. This will overwrite the current content.",
     cancel: "Cancel",
-    backendServer: "Backend Server",
-    useBackendServer: "Use Backend Server (no API key needed)",
-    backendStatus: "Backend Status",
-    backendAvailable: "Available",
-    backendUnavailable: "Unavailable",
-    backendModel: "Backend Model",
-    backendInfo: "When enabled, requests go through the backend server configured via .env file. No API key needed in browser."
+    serverInfo: "Leave API Key empty to use server-side API (configured via environment variables)."
   },
   zh: { 
     general: "常规", api: "API配置", prompts: "提示词", theme: "主题", lang: "语言", dark: "深色", light: "浅色", export: "导出设置", import: "导入设置",
@@ -258,12 +251,6 @@ export const UI_LABELS: Record<string, any> = {
     rewriteDialogTitle: "重写章节",
     rewriteDialogDesc: "为重写本章提供具体指令。这将覆盖当前内容。",
     cancel: "取消",
-    backendServer: "后端服务器",
-    useBackendServer: "使用后端服务器（无需API密钥）",
-    backendStatus: "后端状态",
-    backendAvailable: "可用",
-    backendUnavailable: "不可用",
-    backendModel: "后端模型",
-    backendInfo: "启用后，请求将通过.env文件配置的后端服务器发送。浏览器中无需API密钥。"
+    serverInfo: "留空 API Key 将使用服务器端 API（通过环境变量配置）。"
   },
 };

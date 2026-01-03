@@ -11,12 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Settings, Moon, Sun, Download, Upload, RotateCcw, Server, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { Settings, Moon, Sun, Download, Upload, RotateCcw } from "lucide-react";
 import { StoryConfig, SystemPrompts, LANGUAGES, UI_LABELS, PROMPTS_MAP, DEFAULT_PROMPTS } from "@/lib/types";
-import { checkBackendHealth } from "@/lib/openai";
 import { toast } from "sonner";
-import { useRef, useState, useEffect } from "react";
+import { useRef } from "react";
 
 interface SettingsDialogProps {
   config: StoryConfig;
@@ -34,36 +32,10 @@ export function SettingsDialog({
   
   const labels = UI_LABELS[config.uiLanguage] || UI_LABELS["en"];
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  // Backend health state
-  const [backendStatus, setBackendStatus] = useState<{
-    checking: boolean;
-    available: boolean;
-    hasApiKey: boolean;
-    model?: string;
-  }>({ checking: false, available: false, hasApiKey: false });
-
-  // Check backend health when dialog opens or when useBackendServer changes
-  const checkBackend = async () => {
-    setBackendStatus(prev => ({ ...prev, checking: true }));
-    const result = await checkBackendHealth();
-    setBackendStatus({
-      checking: false,
-      available: result.available,
-      hasApiKey: result.hasApiKey,
-      model: result.model
-    });
-  };
-
-  useEffect(() => {
-    if (config.useBackendServer) {
-      checkBackend();
-    }
-  }, [config.useBackendServer]);
 
   const handleExport = () => {
     const data = {
-      config: { ...config, apiKey: "" }, // Don't export API key
+      config: { ...config, apiKey: "" },
       prompts
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -140,10 +112,9 @@ export function SettingsDialog({
           <DialogTitle>Settings & Configuration</DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="general">{labels.general}</TabsTrigger>
             <TabsTrigger value="api">{labels.api}</TabsTrigger>
-            <TabsTrigger value="backend">{labels.backendServer}</TabsTrigger>
             <TabsTrigger value="prompts">{labels.prompts}</TabsTrigger>
           </TabsList>
           
@@ -213,17 +184,17 @@ export function SettingsDialog({
           {/* API CONFIG TAB */}
           <TabsContent value="api" className="space-y-4 pt-4">
             <div className="space-y-2">
-              <Label>OpenAI API Key</Label>
+              <Label>OpenAI API Key (Optional)</Label>
               <Input
                 type="password"
                 value={config.apiKey}
                 onChange={(e) =>
                   onUpdateConfig({ ...config, apiKey: e.target.value })
                 }
-                placeholder="sk-..."
+                placeholder="sk-... (leave empty to use server API)"
               />
               <p className="text-xs text-muted-foreground">
-                Your API key is stored locally in your browser and never sent to our servers.
+                {labels.serverInfo || "Leave empty to use server-side API. Your key is stored locally."}
               </p>
             </div>
             <div className="space-y-2">
@@ -236,7 +207,7 @@ export function SettingsDialog({
                 placeholder="https://api.openai.com/v1"
               />
               <p className="text-xs text-muted-foreground">
-                Useful for local LLMs (e.g. LM Studio, Ollama) or proxies.
+                Only used when API Key is provided. Useful for local LLMs.
               </p>
             </div>
             <div className="space-y-2">
@@ -251,89 +222,7 @@ export function SettingsDialog({
             </div>
           </TabsContent>
 
-          {/* BACKEND SERVER TAB */}
-          <TabsContent value="backend" className="space-y-4 pt-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="space-y-1">
-                <Label className="text-base">{labels.useBackendServer}</Label>
-                <p className="text-xs text-muted-foreground">
-                  {labels.backendInfo}
-                </p>
-              </div>
-              <Switch
-                checked={config.useBackendServer}
-                onCheckedChange={(checked) => {
-                  onUpdateConfig({ ...config, useBackendServer: checked });
-                  if (checked) {
-                    checkBackend();
-                  }
-                }}
-              />
-            </div>
-
-            {config.useBackendServer && (
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{labels.backendStatus}</span>
-                  <div className="flex items-center gap-2">
-                    {backendStatus.checking ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    ) : backendStatus.available ? (
-                      <>
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        <span className="text-sm text-green-600">{labels.backendAvailable}</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="h-4 w-4 text-red-500" />
-                        <span className="text-sm text-red-600">{labels.backendUnavailable}</span>
-                      </>
-                    )}
-                    <Button variant="ghost" size="sm" onClick={checkBackend} disabled={backendStatus.checking}>
-                      <RotateCcw className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-
-                {backendStatus.available && (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">API Key Configured</span>
-                      <span className="text-sm">
-                        {backendStatus.hasApiKey ? (
-                          <span className="text-green-600">Yes</span>
-                        ) : (
-                          <span className="text-red-600">No - configure in .env</span>
-                        )}
-                      </span>
-                    </div>
-                    {backendStatus.model && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">{labels.backendModel}</span>
-                        <span className="text-sm font-mono">{backendStatus.model}</span>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {!backendStatus.available && !backendStatus.checking && (
-                  <div className="text-sm text-muted-foreground bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded border border-yellow-200 dark:border-yellow-800">
-                    <p className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">Backend server not running</p>
-                    <p className="text-yellow-700 dark:text-yellow-300">
-                      To start the backend server:
-                    </p>
-                    <ol className="list-decimal list-inside mt-2 space-y-1 text-yellow-700 dark:text-yellow-300">
-                      <li>Copy <code className="bg-yellow-100 dark:bg-yellow-800 px-1 rounded">.env.example</code> to <code className="bg-yellow-100 dark:bg-yellow-800 px-1 rounded">.env</code></li>
-                      <li>Add your OpenAI API key to the <code className="bg-yellow-100 dark:bg-yellow-800 px-1 rounded">.env</code> file</li>
-                      <li>Run <code className="bg-yellow-100 dark:bg-yellow-800 px-1 rounded">npx tsx server/index.ts</code></li>
-                    </ol>
-                  </div>
-                )}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* PROMPTS DEBUG TAB */}
+          {/* PROMPTS TAB */}
           <TabsContent value="prompts" className="space-y-4 pt-4">
             <div className="space-y-2">
               <div className="flex justify-between items-center">

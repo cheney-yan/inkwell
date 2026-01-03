@@ -1,22 +1,57 @@
 import { StoryConfig } from "./types";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
+
+export const checkBackendHealth = async (): Promise<{ available: boolean; hasApiKey: boolean; model?: string }> => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/health`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return { 
+        available: true, 
+        hasApiKey: data.hasApiKey,
+        model: data.model 
+      };
+    }
+    return { available: false, hasApiKey: false };
+  } catch {
+    return { available: false, hasApiKey: false };
+  }
+};
+
 export const generateCompletion = async (
   config: StoryConfig,
   messages: { role: "system" | "user" | "assistant"; content: string }[]
 ) => {
-  if (!config.apiKey) {
-    throw new Error("API Key is missing. Please configure it in settings.");
+  // Determine if we should use the backend server
+  const useBackend = !config.apiKey && config.useBackendServer;
+  
+  const targetUrl = useBackend 
+    ? `${BACKEND_URL}/api/chat/completions`
+    : `${config.baseUrl}/chat/completions`;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Only add Authorization header if using direct API
+  if (!useBackend) {
+    if (!config.apiKey) {
+      throw new Error("API Key is missing. Please configure it in settings or enable backend server.");
+    }
+    headers["Authorization"] = `Bearer ${config.apiKey}`;
   }
 
   try {
-    const response = await fetch(`${config.baseUrl}/chat/completions`, {
+    const response = await fetch(targetUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${config.apiKey}`,
-      },
+      headers,
       body: JSON.stringify({
-        model: config.model,
+        model: useBackend ? undefined : config.model, // Backend uses its own model
         messages,
         temperature: 0.7,
       }),

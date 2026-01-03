@@ -35,6 +35,7 @@ export interface StoryConfig {
   model: string;
   uiLanguage: string;
   theme: "light" | "dark";
+  useBackendServer: boolean; // New: fallback to backend when no API key
 }
 
 export const DEFAULT_PROMPTS: SystemPrompts = {
@@ -100,7 +101,7 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
       "title": "Titre",
       "genre": "Genre",
       "outline": [
-        "Résumé du chapitre 1 (synopsis uniquement, PAS de numérotation)",
+        "Résumé du chapitre 1 (synopsis uniquement, PAS de numérot",
         "Résumé du chapitre 2 (synopsis uniquement, PAS de numérotation)"
       ],
       "characters": "liste des personnages"
@@ -144,7 +145,7 @@ export const PROMPTS_MAP: Record<string, SystemPrompts> = {
       "characters": "角色列表"
     }
     
-    outline 数组必须仅包含摘要文本。绝对不要在大纲字符串中包含“第X章”、“1.”或任何数字前缀。应用程序会自动处理编号。`,
+    outline 数组必须仅包含摘要文本。绝对不要在大纲字符串中包含"第X章"、"1."或任何数字前缀。应用程序会自动处理编号。`,
     writing: "你是一位创意小说作家。根据故事计划和以前的背景编写请求的章节...",
   },
   ja: {
@@ -208,7 +209,14 @@ export const UI_LABELS: Record<string, any> = {
     customRewrite: "Rewrite with Instructions...",
     rewriteDialogTitle: "Rewrite Chapter",
     rewriteDialogDesc: "Provide specific instructions for rewriting this chapter. This will overwrite the current content.",
-    cancel: "Cancel"
+    cancel: "Cancel",
+    backendServer: "Backend Server",
+    useBackendServer: "Use Backend Server (no API key needed)",
+    backendStatus: "Backend Status",
+    backendAvailable: "Available",
+    backendUnavailable: "Unavailable",
+    backendModel: "Backend Model",
+    backendInfo: "When enabled, requests go through the backend server configured via .env file. No API key needed in browser."
   },
   zh: { 
     general: "常规", api: "API配置", prompts: "提示词", theme: "主题", lang: "语言", dark: "深色", light: "浅色", export: "导出设置", import: "导入设置",
@@ -249,6 +257,13 @@ export const UI_LABELS: Record<string, any> = {
     customRewrite: "带指令重写...",
     rewriteDialogTitle: "重写章节",
     rewriteDialogDesc: "为重写本章提供具体指令。这将覆盖当前内容。",
-    cancel: "取消"
+    cancel: "取消",
+    backendServer: "后端服务器",
+    useBackendServer: "使用后端服务器（无需API密钥）",
+    backendStatus: "后端状态",
+    backendAvailable: "可用",
+    backendUnavailable: "不可用",
+    backendModel: "后端模型",
+    backendInfo: "启用后，请求将通过.env文件配置的后端服务器发送。浏览器中无需API密钥。"
   },
 };

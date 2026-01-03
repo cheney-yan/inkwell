@@ -17,7 +17,8 @@ export const useStory = () => {
         baseUrl: "https://api.openai.com/v1", 
         model: "gpt-4o",
         uiLanguage: "en",
-        theme: "light" as const
+        theme: "light" as const,
+        useBackendServer: false
     };
     return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
   });

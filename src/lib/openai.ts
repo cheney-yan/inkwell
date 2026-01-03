@@ -1,16 +1,9 @@
 import { StoryConfig } from "./types";
 import { toast } from "sonner";
 
-// Use relative path for API routes - works in both local dev and Vercel production
-const getApiUrl = (path: string) => {
-  // In production (Vercel), use relative path
-  // In local dev with Vite, the proxy will handle it OR we fall back to direct backend
-  return `/api/${path}`;
-};
-
 export const checkBackendHealth = async (): Promise<{ available: boolean; hasApiKey: boolean; model?: string }> => {
   try {
-    const response = await fetch(getApiUrl("health"), {
+    const response = await fetch("/api/health", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -46,7 +39,7 @@ export const generateCompletion = async (
   }
   
   const targetUrl = useBackend 
-    ? getApiUrl("chat")
+    ? "/api/chat"
     : `${config.baseUrl}/chat/completions`;
 
   const headers: Record<string, string> = {
@@ -58,61 +51,56 @@ export const generateCompletion = async (
     headers["Authorization"] = `Bearer ${config.apiKey}`;
   }
 
+  const body = {
+    messages,
+    temperature: 0.7,
+    ...(useBackend ? {} : { model: config.model }),
+  };
+
   try {
     const response = await fetch(targetUrl, {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        model: useBackend ? undefined : config.model,
-        messages,
-        temperature: 0.7,
-      }),
+      body: JSON.stringify(body),
     });
 
+    const responseData = await response.json().catch(() => null);
+
     if (!response.ok) {
-      let errorDetails = `Status: ${response.status} ${response.statusText}`;
+      let errorMessage = `API Error (${response.status})`;
       
-      try {
-        const errorJson = await response.json();
-        
-        if (errorJson.error) {
-             const { message, type, code } = errorJson.error;
-             if (message) errorDetails += `\nMessage: ${message}`;
-             if (type) errorDetails += `\nType: ${type}`;
-             if (code) errorDetails += `\nCode: ${code}`;
-        } else {
-            errorDetails += `\nResponse: ${JSON.stringify(errorJson, null, 2)}`;
-        }
-      } catch (jsonError) {
-        try {
-            const text = await response.text();
-            if (text) errorDetails += `\nResponse: ${text.slice(0, 500)}`;
-        } catch (e) {
-            // Ignore text reading errors
-        }
+      if (responseData?.error?.message) {
+        errorMessage = responseData.error.message;
+      } else if (responseData?.error) {
+        errorMessage = JSON.stringify(responseData.error);
       }
       
-      throw new Error(errorDetails);
+      throw new Error(errorMessage);
     }
 
-    const data = await response.json();
-    return data.choices[0].message.content;
+    if (!responseData?.choices?.[0]?.message?.content) {
+      throw new Error("Invalid response format from API");
+    }
+
+    return responseData.choices[0].message.content;
   } catch (error: any) {
     // Handle network errors for backend
-    if (useBackend && error.message && error.message.includes("Failed to fetch")) {
-      throw new Error(
-        "Backend API is not available.\n\n" +
-        "If running locally, make sure to run 'vercel dev' instead of 'npm run dev'.\n\n" +
-        "Or configure your own API key in Settings > API Config."
-      );
+    if (error.message === "Failed to fetch") {
+      if (useBackend) {
+        throw new Error(
+          "Backend server is not available.\n\n" +
+          "Options:\n" +
+          "1. Run the backend: npm run dev:server\n" +
+          "2. Or configure your own API key in Settings > API Config"
+        );
+      } else {
+        throw new Error(
+          "Could not connect to OpenAI API.\n\n" +
+          "Check your internet connection and API settings."
+        );
+      }
     }
     
-    // If it's already our formatted error, rethrow
-    if (error.message && error.message.includes("Status:")) {
-        throw error;
-    }
-    
-    // Handle other network errors
-    throw new Error(`Network/Request Error: ${error.message}`);
+    throw error;
   }
 };

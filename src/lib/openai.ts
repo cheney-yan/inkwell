@@ -1,4 +1,5 @@
 import { StoryConfig } from "./types";
+import { toast } from "sonner";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
 
@@ -28,7 +29,16 @@ export const generateCompletion = async (
   messages: { role: "system" | "user" | "assistant"; content: string }[]
 ) => {
   // Determine if we should use the backend server
-  const useBackend = !config.apiKey && config.useBackendServer;
+  // Use backend if: explicitly enabled OR no API key provided
+  const useBackend = config.useBackendServer || !config.apiKey;
+  
+  // Show privacy warning when using backend without explicit opt-in
+  if (useBackend && !config.apiKey && !config.useBackendServer) {
+    toast.warning("Using default backend model. Your chat messages are not private.", {
+      id: "backend-privacy-warning", // Prevent duplicate toasts
+      duration: 5000,
+    });
+  }
   
   const targetUrl = useBackend 
     ? `${BACKEND_URL}/api/chat/completions`
@@ -40,9 +50,6 @@ export const generateCompletion = async (
 
   // Only add Authorization header if using direct API
   if (!useBackend) {
-    if (!config.apiKey) {
-      throw new Error("API Key is missing. Please configure it in settings or enable backend server.");
-    }
     headers["Authorization"] = `Bearer ${config.apiKey}`;
   }
 
